@@ -1,0 +1,10 @@
+{
+  "version": "1.8.0",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "module": "system",
+    "outFile": "./test/src/build.js"
+  }
+}

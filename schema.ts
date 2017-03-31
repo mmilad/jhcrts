@@ -1,0 +1,3 @@
+var J:any = {
+    HELPER: {}
+}
