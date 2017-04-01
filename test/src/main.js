@@ -62,10 +62,10 @@ function main() {
     
     J.C().update({
         ".foo": {
-            color: "red"
+            color: "orange",
+            borderRadius: "5px"
         }
     });
-    J.C().sheet.href = "src/style.css";
     
     mainContainer.children.push(button);
     H(mainContainer);

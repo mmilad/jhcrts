@@ -108,26 +108,29 @@ new (function () {
                 document.head.appendChild(_this.STYLE_ELEMENT);
                 _this.sheet = document.styleSheets[document.styleSheets.length - 1];
                 _this.rules = _this.sheet.cssRules ? _this.sheet.cssRules : _this.sheet.rules;
+                _this.indexes = {};
                 _this.STYLE_LIST = {};
                 _this.initialized = true;
             }
             _this.update = function (config) {
                 var newConfig = {}, selector, rule, currentRules;
                 for (selector in config) {
-                    newConfig[selector] = {};
-                    if (_this.STYLE_LIST[selector]) {
-                        for (rule in _this.STYLE_LIST[selector].rules) {
-                            newConfig[selector][rule] = _this.STYLE_LIST[selector].rules[rule];
-                        }
-                    }
+                    // newConfig[selector] = {}
+                    // if(this.STYLE_LIST[selector]) {
+                    //     for(rule in this.STYLE_LIST[selector].rules){
+                    //         newConfig[selector][rule] = this.STYLE_LIST[selector].rules[rule]
+                    //     }
+                    // }
+                    // for(rule in config[selector]){
+                    //     newConfig[selector][rule] = config[selector][rule]
+                    // }
                     for (rule in config[selector]) {
-                        newConfig[selector][rule] = config[selector][rule];
+                        SELF.rules[SELF.indexes[selector]].style[rule] = config[selector][rule];
                     }
                 }
                 addStyle(newConfig);
             };
             function styleObjToStr(config) {
-                debugger;
                 var selector, rule, currentRule;
                 for (selector in config) {
                     currentRule = selector + "{";
@@ -139,28 +142,23 @@ new (function () {
                 return currentRule;
             }
             function addStyle(config) {
-                var index, selector, rule, currentRule = {}, currentRuleString;
-                currentRuleString = styleObjToStr(config);
+                var index = 0, selector, rule, currentRule = {}, currentRuleString;
                 for (selector in config) {
+                    currentRuleString = styleObjToStr((_a = {}, _a[selector] = config[selector], _a));
                     currentRule[selector] = config[selector];
                     if (!SELF.STYLE_LIST[selector]) {
                         SELF.STYLE_LIST[selector] = {};
                         SELF.STYLE_LIST[selector].rules = config[selector];
                         SELF.STYLE_LIST[selector].config = {};
-                        index = SELF.sheet.rules.length;
                     }
                     else {
                         index = SELF.STYLE_LIST[selector].config.index;
                     }
-                    if (!SELF.rules[index]) {
-                        SELF.STYLE_LIST[selector].config.index = SELF.sheet.insertRule(currentRuleString, index);
-                    }
-                    else {
-                        for (rule in config[selector]) {
-                            SELF.rules[index].style['border'] = "3px solid green";
-                        }
+                    if (!SELF.indexes[selector]) {
+                        SELF.indexes[selector] = SELF.sheet.insertRule(currentRuleString, SELF.rules.length);
                     }
                 }
+                var _a;
             }
             if (config) {
                 addStyle(config);
