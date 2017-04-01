@@ -29,9 +29,8 @@ new class JHCR_REQUEST_CONTROLLER {
                 }
                 xmlHttp.send(config.data)
             }
-            if(config) {
-                this.post(config)
-            }
+            if(config) {this.post(config)}
+            return this
         }
     }
 }
