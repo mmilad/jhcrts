@@ -90,9 +90,85 @@ new (function () {
             if (config) {
                 _this.post(config);
             }
+            return _this;
         };
     }
     return JHCR_REQUEST_CONTROLLER;
+}());
+new (function () {
+    function JHCR_STYLE_CONTsOLLER() {
+        var _this = this;
+        this.initialized = false;
+        var SELF = this;
+        J.C = function (config) {
+            var literator;
+            if (!_this.initialized) {
+                _this.STYLE_ELEMENT = document.createElement('style');
+                _this.STYLE_ELEMENT.type = "text/css";
+                document.head.appendChild(_this.STYLE_ELEMENT);
+                _this.sheet = document.styleSheets[document.styleSheets.length - 1];
+                _this.rules = _this.sheet.cssRules ? _this.sheet.cssRules : _this.sheet.rules;
+                _this.STYLE_LIST = {};
+                _this.initialized = true;
+            }
+            _this.update = function (config) {
+                var newConfig = {}, selector, rule, currentRules;
+                for (selector in config) {
+                    newConfig[selector] = {};
+                    if (_this.STYLE_LIST[selector]) {
+                        for (rule in _this.STYLE_LIST[selector].rules) {
+                            newConfig[selector][rule] = _this.STYLE_LIST[selector].rules[rule];
+                        }
+                    }
+                    for (rule in config[selector]) {
+                        newConfig[selector][rule] = config[selector][rule];
+                    }
+                }
+                addStyle(newConfig);
+            };
+            function styleObjToStr(config) {
+                debugger;
+                var selector, rule, currentRule;
+                for (selector in config) {
+                    currentRule = selector + "{";
+                    for (rule in config[selector]) {
+                        currentRule += rule + ":" + config[selector][rule] + ";";
+                    }
+                    currentRule += "}";
+                }
+                return currentRule;
+            }
+            function addStyle(config) {
+                var index, selector, rule, currentRule = {}, currentRuleString;
+                currentRuleString = styleObjToStr(config);
+                for (selector in config) {
+                    currentRule[selector] = config[selector];
+                    if (!SELF.STYLE_LIST[selector]) {
+                        SELF.STYLE_LIST[selector] = {};
+                        SELF.STYLE_LIST[selector].rules = config[selector];
+                        SELF.STYLE_LIST[selector].config = {};
+                        index = SELF.sheet.rules.length;
+                    }
+                    else {
+                        index = SELF.STYLE_LIST[selector].config.index;
+                    }
+                    if (!SELF.rules[index]) {
+                        SELF.STYLE_LIST[selector].config.index = SELF.sheet.insertRule(currentRuleString, index);
+                    }
+                    else {
+                        for (rule in config[selector]) {
+                            SELF.rules[index].style['border'] = "3px solid green";
+                        }
+                    }
+                }
+            }
+            if (config) {
+                addStyle(config);
+            }
+            return _this;
+        };
+    }
+    return JHCR_STYLE_CONTsOLLER;
 }());
 J.HELPER.DATA = {};
 new (function () {

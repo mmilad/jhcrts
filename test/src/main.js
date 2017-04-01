@@ -6,6 +6,9 @@ function main() {
     var button;
     mainContainer = {children:[
         {
+            attributes: {
+                class: "bar"
+            },
             tag: "input",
             callbacks: [{
                 event: "keyup",
@@ -15,10 +18,18 @@ function main() {
             }]
         },{
             tag: "a",
+            attributes: {
+                class: "foo"
+            },
             bind:{
                 data: "foo",
                 property: "innerHTML",
                 attribute: "plain"
+            }
+        },{
+            html: "adasd",
+            attributes: {
+                class: "fooo"
             }
         }
     ]};
@@ -38,7 +49,24 @@ function main() {
                 })
             }
         }]
-    }
+    };
+    J.C({
+        ".foo":{
+            border: "1px solid black;",
+            color: "green;"
+        },
+        ".bar":{
+            color: "blue"
+        }
+    });
+    
+    J.C().update({
+        ".foo": {
+            color: "red"
+        }
+    });
+    J.C().sheet.href = "src/style.css";
+    
     mainContainer.children.push(button);
     H(mainContainer);
     document.body.appendChild(mainContainer.element);
