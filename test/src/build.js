@@ -1,5 +1,6 @@
 var J = {
-    HELPER: {}
+    HELPER: {},
+    path: document.currentScript.src
 };
 new (function () {
     function JHCR_ELEMENT_CONTROLER() {
@@ -47,10 +48,28 @@ new (function () {
                 }
                 return config.element;
             }
+            _this.register = function (config) {
+                window[config.register] = function () {
+                    return Reflect.construct(HTMLElement, [], window[config.register]);
+                };
+                window[config.register].prototype.attributeChangedCallback = function (name, oldValue, newValue) {
+                    console.log(oldValue);
+                    console.log(newValue);
+                };
+                window[config.register].prototype.connectedCallback = function () {
+                    J.H(config);
+                    this.innerHTML = "";
+                    this.appendChild(config.element);
+                };
+                window[config.register].observedAttributes = ['class'];
+                window[config.register].prototype.__proto__ = HTMLElement.prototype;
+                window[config.register].__proto__ = HTMLElement;
+                customElements.define(config.register, window[config.register]);
+            };
             if (config) {
                 init(config, _this.dataBase);
             }
-            return _this.dataBase;
+            return _this;
             // HController END
         };
     }
@@ -60,8 +79,8 @@ new (function () {
     function JHCR_REQUEST_CONTROLLER() {
         var _this = this;
         J.R = function (config) {
+            var SELF = _this, lit;
             _this.get = function (config) {
-                var lit;
                 var baseConfig = { type: "GET", async: true, data: null };
                 for (lit in config) {
                     baseConfig[lit] = config[lit];
@@ -69,7 +88,6 @@ new (function () {
                 httpGetAsync(baseConfig);
             };
             _this.post = function (config) {
-                var lit;
                 var baseConfig = { type: "POST", async: true, data: null };
                 for (lit in config) {
                     baseConfig[lit] = config[lit];
@@ -87,9 +105,37 @@ new (function () {
                 };
                 xmlHttp.send(config.data);
             }
-            if (config) {
-                _this.post(config);
-            }
+            _this.request = function (config) {
+                var baseConfig = {
+                    url: "",
+                    prepend: {
+                        js: [],
+                        css: []
+                    },
+                    append: {
+                        js: [],
+                        css: []
+                    },
+                    callback: function () {
+                    },
+                    appendJhcr: true
+                }, frame;
+                SELF.loadJsFile(config.url + "html.js", function (e) {
+                    this;
+                    console.log("loadseds");
+                });
+            };
+            _this.loadJsFile = function (url, callback) {
+                var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.onload = function (e) {
+                    window["config"];
+                    callback(e);
+                };
+                script.src = url;
+                document.getElementsByTagName("head")[0].appendChild(script);
+            };
+            // if(config) {this.request(config)}
             return _this;
         };
     }
@@ -130,12 +176,17 @@ new (function () {
                 }
                 addStyle(newConfig);
             };
-            function styleObjToStr(config) {
+            function styleObjToStr(config, currentSelector) {
                 var selector, rule, currentRule;
                 for (selector in config) {
-                    currentRule = selector + "{";
+                    currentSelector = currentSelector
+                        ? currentSelector + " " + selector
+                        : selector;
+                    currentRule = currentSelector + "{";
                     for (rule in config[selector]) {
-                        currentRule += rule + ":" + config[selector][rule] + ";";
+                        if (rule !== "children" && rule !== "types") {
+                            currentRule += rule + ":" + config[currentSelector][rule] + ";";
+                        }
                     }
                     currentRule += "}";
                 }
@@ -144,7 +195,10 @@ new (function () {
             function addStyle(config) {
                 var index = 0, selector, rule, currentRule = {}, currentRuleString;
                 for (selector in config) {
-                    currentRuleString = styleObjToStr((_a = {}, _a[selector] = config[selector], _a));
+                    currentRuleString = styleObjToStr((_a = {}, _a[selector] = config[selector], _a), false);
+                    if (config[selector].children) {
+                        addStyle(config[selector].children);
+                    }
                     currentRule[selector] = config[selector];
                     if (!SELF.STYLE_LIST[selector]) {
                         SELF.STYLE_LIST[selector] = {};
@@ -171,6 +225,25 @@ new (function () {
 J.HELPER.DATA = {};
 new (function () {
     function JHCR_HELPER_DATABASE_CONTROLLER() {
+        // if(!inited) {
+        //     var inited = true
+        //         window['new-db-object'] = function() {
+        //             return Reflect.construct(HTMLElement, [], window['new-db-object']);
+        //         }
+        //         window['new-db-object'].prototype.attributeChangedCallback = function (name, oldValue, newValue) {
+        //             console.log(oldValue);
+        //             console.log(newValue);
+        //         }
+        //         window['new-db-object'].prototype.connectedCallback = function () {
+        //             // J.H(config)
+        //             // this.innerHTML ="";
+        //             // this.appendChild(config.element)
+        //         }
+        //         window['new-db-object'].observedAttributes = ['data-*'];
+        //         window['new-db-object'].prototype.__proto__ = HTMLElement.prototype;
+        //         window['new-db-object'].__proto__ = HTMLElement;
+        //         customElements.define('new-db-object', window['new-db-object']);
+        // }
         J.HELPER.DATA.newDataBase = function () {
             return new function () {
                 var ATTACHMENTS = [], BACKUP = {}, BACKUP_VERSIONS = {}, DATABASE = document.createElement('select'), obj = {};
@@ -247,6 +320,8 @@ new (function () {
                 init(DATABASE.dataset);
                 return obj;
             };
+        };
+        J.HELPER.DATA.db = function () {
         };
     }
     return JHCR_HELPER_DATABASE_CONTROLLER;

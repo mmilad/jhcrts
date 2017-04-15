@@ -44,12 +44,17 @@ new class JHCR_STYLE_CONTsOLLER {
                 }
                 addStyle(newConfig)
             }
-            function styleObjToStr(config){
+            function styleObjToStr(config, currentSelector){
                 var selector, rule, currentRule;
                 for (selector in config) {
-                    currentRule = selector + "{";
+                    currentSelector = currentSelector
+                        ? currentSelector + " " +selector
+                        : selector
+                    currentRule = currentSelector + "{";
                     for(rule in config[selector]){
-                        currentRule += rule + ":" + config[selector][rule] + ";";
+                        if(rule !== "children" && rule !== "types") {
+                            currentRule += rule + ":" + config[currentSelector][rule] + ";";
+                        }
                     }
                     currentRule += "}";
                 }
@@ -58,7 +63,10 @@ new class JHCR_STYLE_CONTsOLLER {
             function addStyle(config) {
                 var index = 0, selector, rule, currentRule={}, currentRuleString;
                 for (selector in config) {
-                    currentRuleString = styleObjToStr({[selector]:config[selector]})
+                    currentRuleString = styleObjToStr({[selector]:config[selector]}, false)
+                    if(config[selector].children) {
+                        addStyle(config[selector].children)
+                    }
                     currentRule[selector] = config[selector]
                     if(!SELF.STYLE_LIST[selector]) {
                         SELF.STYLE_LIST[selector] = {}
