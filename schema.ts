@@ -1,3 +1,4 @@
 var J:any = {
-    HELPER: {}
+    HELPER: {},
+    path: document.currentScript.src
 }

@@ -1,6 +1,28 @@
 J.HELPER.DATA = {};
 new class JHCR_HELPER_DATABASE_CONTROLLER {
     constructor(){
+
+        // if(!inited) {
+        //     var inited = true
+                // window['new-db-object'] = function() {
+                //     return Reflect.construct(HTMLElement, [], window['new-db-object']);
+                // }
+                // window['new-db-object'].prototype.attributeChangedCallback = function (name, oldValue, newValue) {
+                //     console.log(oldValue);
+                //     console.log(newValue);
+                // }
+                // window['new-db-object'].prototype.connectedCallback = function () {
+                //     // J.H(config)
+                //     // this.innerHTML ="";
+                //     // this.appendChild(config.element)
+                // }
+                // window['new-db-object'].observedAttributes = ['data-*'];un
+                // window['new-db-object'].prototype.__proto__ = HTMLElement.prototype;
+                // window['new-db-object'].__proto__ = HTMLElement;
+                // customElements.define('new-db-object', window['new-db-object']);
+
+
+        // }
         J.HELPER.DATA.newDataBase = () =>{
             return new function():void{
                 var ATTACHMENTS=[],
@@ -80,6 +102,7 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
                 return obj;
             }
         }
-
+        J.HELPER.DATA.db = function() {
+        }
     }
 }
