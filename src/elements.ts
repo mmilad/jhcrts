@@ -47,22 +47,10 @@ new class JHCR_ELEMENT_CONTROLER {
             }
             
             this.register = function(config) {
-                window[config.register] = function () {
-                    return Reflect.construct(HTMLElement, [], window[config.register]);
+                var item;
+                for(item in config) {
+                    J.registry[item] = config[item];
                 }
-                window[config.register].prototype.attributeChangedCallback = function (name, oldValue, newValue) {
-                    console.log(oldValue);
-                    console.log(newValue);
-                }
-                window[config.register].prototype.connectedCallback = function () {
-                    J.H(config)
-                    this.innerHTML ="";
-                    this.appendChild(config.element)
-                }
-                window[config.register].observedAttributes = ['class'];
-                window[config.register].prototype.__proto__ = HTMLElement.prototype;
-                window[config.register].__proto__ = HTMLElement;
-                customElements.define(config.register, window[config.register]);
             }
             if(config){
                 init(config, this.dataBase)

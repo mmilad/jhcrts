@@ -48,10 +48,6 @@ new class JHCR_REQUEST_CONTROLLER {
                     },
                     frame;
 
-                    SELF.loadJsFile(config.url+"html.js",function(e){
-                        this;
-                        console.log("loadseds")
-                    })
             }
             this.loadJsFile = function(url, callback){
 

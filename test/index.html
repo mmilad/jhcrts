@@ -5,41 +5,38 @@
         <script type="text/javascript" src="src/main.js"></script>
         <style></style>
         <script>
-   
-var conf = {
-    register: "boss-milad",
-    children: [
-        {tag: "p", html: "foo"},
-        {tag: "a", html: "bar"}
-    ]
-}
-// function regg (config) {
-// customElements.define(
-//     config.register,
-//     class extends HTMLElement {
-//         constructor() {
-//         super();
-//         var SELF = this;
-//         //     this.addEventListener('click', function(){
-//         //         console.log("jooo");
-//         //     })
-//         this.addit = function() {
+            log= console.log;
 
-//         }
-//             customElements.whenDefined(config.register)
-//             .then(function() {
-//                 window.onload = function() {
-//                     // debugger
-//                     J.H(config);
-//                     SELF.append(config.element)
-//                 }
-//             })
-                
-//         }
-//     }
-// );     
-// }      
-// regg (conf)  
+
+var myObj = J.HELPER.newDataBase({
+    name: "milad",
+    alter: 30
+});
+
+myObj.onSet = {
+    name: function(a){
+        console.log(a)
+    }
+}
+myObj.name = {q:{w:{e:"2"}}};
+myObj.name.q.w.e ="asdas22222222222222d"
+myObj.gesucgt = {}
+
+var conf = {
+    milad: {
+        onAdd : function(e) {
+            
+            var counter = 0;
+            var pg = {tag:"p", callbacks:[{event:"click", callback: function(){
+                counter++;
+                counter<10 ? console.log("hol dir ein bier") : console.log("JETZ aber schnell")
+            }}]};
+            J.H(pg);
+            pg.element.innerHTML =" hello world !!! ";
+            e.appendChild(pg.element)
+        }
+    }
+}
                 J.H().register(conf);
             window.onload = function() {
                 document.body.appendChild(document.createElement('boss-milad'));
@@ -65,17 +62,9 @@ var conf = {
 
                 main();
             }
-
-            var w = document.createElement('new-db-object');
-            w.name = "asdasd";
-            console.log(w)
         </script>
     </head>
     <body>
-        <new-db-object data-d="asdasd"></new-db-object>
-        <custom-element></custom-element>
-        <boss-milad></boss-milad>
-        <my-el><a>asd</a></my-el>
-        hallo welt
+        <milad></milad>
     </body>
 </html>

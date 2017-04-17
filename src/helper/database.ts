@@ -2,27 +2,49 @@ J.HELPER.DATA = {};
 new class JHCR_HELPER_DATABASE_CONTROLLER {
     constructor(){
 
-        // if(!inited) {
-        //     var inited = true
-                // window['new-db-object'] = function() {
-                //     return Reflect.construct(HTMLElement, [], window['new-db-object']);
-                // }
-                // window['new-db-object'].prototype.attributeChangedCallback = function (name, oldValue, newValue) {
-                //     console.log(oldValue);
-                //     console.log(newValue);
-                // }
-                // window['new-db-object'].prototype.connectedCallback = function () {
-                //     // J.H(config)
-                //     // this.innerHTML ="";
-                //     // this.appendChild(config.element)
-                // }
-                // window['new-db-object'].observedAttributes = ['data-*'];un
-                // window['new-db-object'].prototype.__proto__ = HTMLElement.prototype;
-                // window['new-db-object'].__proto__ = HTMLElement;
-                // customElements.define('new-db-object', window['new-db-object']);
+        
+        J.HELPER.newDataBase = (data, config) => {
+            function JHCR_MagicObject(obj, p){
+                var litter, that = this;
+                this.isJHCR_MagicObject = true;
+                this.value = obj;
+                this.nodeOf = p ? p : null
+                this.items = {};
+                this._onGet = {};
+                this._onSet = {};
+                // this. = function() {
 
+                // }
+                // debugger;
+                for (var name in obj) {
+                    Object.defineProperty(this, name,{
+                        get () {
+                            for(litter in this.onGet) {
+                                this.onGet[litter]()
+                            };
+                            return this.items[name];
+                        },
+                        set (e) {
+                            for(litter in this.onSet) {
+                                this.onSet[litter]({
+                                    newVal: e,
+                                    oldVal: this.value[name]
+                                });
+                            };
+                            if(typeof e !== "object") {
+                                this.value[name] = e;
+                            } else {
+                                this.value[name] = e;
+                                this.items[name] = new JHCR_MagicObject(e, this)
+                            }
+                        }
+                    });
+                    this[name] = obj[name];
+                }
+            }
 
-        // }
+            return data ? new JHCR_MagicObject(data, null) : new JHCR_MagicObject({data:""}, null);
+        }
         J.HELPER.DATA.newDataBase = () =>{
             return new function():void{
                 var ATTACHMENTS=[],

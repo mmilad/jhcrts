@@ -1,7 +1,24 @@
 var J = {
     HELPER: {},
-    path: document.currentScript.src
+    registry: {}
 };
+var JHCRdocObserver = new MutationObserver(function (mutations) {
+    // var key,itemFound;
+    this;
+    mutations.forEach(function (mutation) {
+        for (var i in mutation.addedNodes) {
+            if (J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onAdd) {
+                J.registry[mutation.addedNodes[i].localName].onAdd(mutation.addedNodes[i]);
+            }
+        }
+        for (var i in mutation.removedNodes) {
+            if (J.registry[mutation.removedNodes[i].localName] && J.registry[mutation.removedNodes[i].localName].onRemove) {
+                J.registry[mutation.removedNodes[i].localName].onRemove(mutation.removedNodes[i]);
+            }
+        }
+    });
+});
+JHCRdocObserver.observe(document, { childList: true, subtree: true });
 new (function () {
     function JHCR_ELEMENT_CONTROLER() {
         var _this = this;
@@ -49,22 +66,10 @@ new (function () {
                 return config.element;
             }
             _this.register = function (config) {
-                window[config.register] = function () {
-                    return Reflect.construct(HTMLElement, [], window[config.register]);
-                };
-                window[config.register].prototype.attributeChangedCallback = function (name, oldValue, newValue) {
-                    console.log(oldValue);
-                    console.log(newValue);
-                };
-                window[config.register].prototype.connectedCallback = function () {
-                    J.H(config);
-                    this.innerHTML = "";
-                    this.appendChild(config.element);
-                };
-                window[config.register].observedAttributes = ['class'];
-                window[config.register].prototype.__proto__ = HTMLElement.prototype;
-                window[config.register].__proto__ = HTMLElement;
-                customElements.define(config.register, window[config.register]);
+                var item;
+                for (item in config) {
+                    J.registry[item] = config[item];
+                }
             };
             if (config) {
                 init(config, _this.dataBase);
@@ -120,10 +125,6 @@ new (function () {
                     },
                     appendJhcr: true
                 }, frame;
-                SELF.loadJsFile(config.url + "html.js", function (e) {
-                    this;
-                    console.log("loadseds");
-                });
             };
             _this.loadJsFile = function (url, callback) {
                 var script = document.createElement("script");
@@ -225,25 +226,49 @@ new (function () {
 J.HELPER.DATA = {};
 new (function () {
     function JHCR_HELPER_DATABASE_CONTROLLER() {
-        // if(!inited) {
-        //     var inited = true
-        //         window['new-db-object'] = function() {
-        //             return Reflect.construct(HTMLElement, [], window['new-db-object']);
-        //         }
-        //         window['new-db-object'].prototype.attributeChangedCallback = function (name, oldValue, newValue) {
-        //             console.log(oldValue);
-        //             console.log(newValue);
-        //         }
-        //         window['new-db-object'].prototype.connectedCallback = function () {
-        //             // J.H(config)
-        //             // this.innerHTML ="";
-        //             // this.appendChild(config.element)
-        //         }
-        //         window['new-db-object'].observedAttributes = ['data-*'];
-        //         window['new-db-object'].prototype.__proto__ = HTMLElement.prototype;
-        //         window['new-db-object'].__proto__ = HTMLElement;
-        //         customElements.define('new-db-object', window['new-db-object']);
-        // }
+        J.HELPER.newDataBase = function (data, config) {
+            function JHCR_MagicObject(obj, p) {
+                var litter, that = this;
+                this.isJHCR_MagicObject = true;
+                this.value = obj;
+                this.nodeOf = p ? p : null;
+                this.items = {};
+                this._onGet = {};
+                this._onSet = {};
+                // this. = function() {
+                // }
+                // debugger;
+                for (var name in obj) {
+                    Object.defineProperty(this, name, {
+                        get: function () {
+                            for (litter in this.onGet) {
+                                this.onGet[litter]();
+                            }
+                            ;
+                            return this.items[name];
+                        },
+                        set: function (e) {
+                            for (litter in this.onSet) {
+                                this.onSet[litter]({
+                                    newVal: e,
+                                    oldVal: this.value[name]
+                                });
+                            }
+                            ;
+                            if (typeof e !== "object") {
+                                this.value[name] = e;
+                            }
+                            else {
+                                this.value[name] = e;
+                                this.items[name] = new JHCR_MagicObject(e, this);
+                            }
+                        }
+                    });
+                    this[name] = obj[name];
+                }
+            }
+            return data ? new JHCR_MagicObject(data, null) : new JHCR_MagicObject({ data: "" }, null);
+        };
         J.HELPER.DATA.newDataBase = function () {
             return new function () {
                 var ATTACHMENTS = [], BACKUP = {}, BACKUP_VERSIONS = {}, DATABASE = document.createElement('select'), obj = {};
