@@ -1,12 +1,10 @@
 new class JHCR_ELEMENT_CONTROLER {
-    newDataBase:any
-    dataBase:any
     SELF:this
     register:Function
     constructor(){
         J.H = (config) => { 
             // HController START
-            function init(config, db) {
+            function init(config) {
                 var literator
                 config.tag = !config.tag ? 'div' : config.tag
                 config.element = document.createElement(config.tag)
@@ -27,7 +25,7 @@ new class JHCR_ELEMENT_CONTROLER {
                 }
                 if(config.children) {
                     config.children.forEach(function(instance){
-                        config.element.appendChild(init(instance, db))
+                        config.element.appendChild(init(instance))
                     })
                 }
                 if(config.callbacks) {
@@ -36,33 +34,28 @@ new class JHCR_ELEMENT_CONTROLER {
                     })
                 }
                 if(config.bind) {
-                        if(config.bind.property) {
-                            config.element[config.bind.property] = config.bind.data.value
-                        }
-                        if(config.bind.attribute) {
-                            config.element.setAttribute(config.bind.attribute, config.bind.data.value)
-                        }
-                        config.bind.data.onSet.push(function(e){
-                            if(config.element) {
-                                if(config.bind.property) {
-                                    config.element[config.bind.property] = e.value
-                                }
-                                if(config.bind.attribute) {
-                                    config.element.setAttribute(config.bind.attribute, config.bind.data.value)
-                                }
+                    if(config.bind.property) {
+                        config.element[config.bind.property] = config.bind.data.value
+                    }
+                    if(config.bind.attribute) {
+                        config.element.setAttribute(config.bind.attribute, config.bind.data.value)
+                    }
+                    config.bind.data.onSet.push(function(e){
+                        if(config.element) {
+                            if(config.bind.property) {
+                                config.element[config.bind.property] = e.value
                             }
-                            if(config.bind.callback){
-                                config.bind.callback(e)
+                            if(config.bind.attribute) {
+                                config.element.setAttribute(config.bind.attribute, config.bind.data.value)
                             }
-                        })
-
-                    // config.bind.element = config.element
-                    // db.bind(config.bind)
-                    // if(db.data[config.bind.data]) {db.data[config.bind.data] = db.data[config.bind.data] }
+                        }
+                        if(config.bind.callback){
+                            config.bind.callback(e)
+                        }
+                    })
                 }
                 return config.element
             }
-            
             this.register = function(config) {
                 var item;
                 for(item in config) {
@@ -70,7 +63,7 @@ new class JHCR_ELEMENT_CONTROLER {
                 }
             }
             if(config){
-                init(config, this.dataBase)
+                init(config)
             }
             return this
             // HController END

@@ -5,6 +5,6 @@
     "experimentalDecorators": true,
     "target": "es5",
     "module": "system",
-    "outFile": "./test/src/build.js"
+    "outFile": "./test/src/jhcr.js"
   }
 }

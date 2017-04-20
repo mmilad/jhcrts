@@ -1,7 +1,5 @@
 new class JHCR_STYLE_CONTsOLLER {
     update:object
-    s:object
-    l:object
     sheet:any
     rules:any
     indexes:object
@@ -23,21 +21,12 @@ new class JHCR_STYLE_CONTsOLLER {
                 this.STYLE_LIST = {}
                 this.initialized = true
             }
-            this.update = (config) =>{
+            this.update = function(config) {
                 var newConfig={},
                     selector,
                     rule,
                     currentRules;
                 for (selector in config) {
-                    // newConfig[selector] = {}
-                    // if(this.STYLE_LIST[selector]) {
-                    //     for(rule in this.STYLE_LIST[selector].rules){
-                    //         newConfig[selector][rule] = this.STYLE_LIST[selector].rules[rule]
-                    //     }
-                    // }
-                    // for(rule in config[selector]){
-                    //     newConfig[selector][rule] = config[selector][rule]
-                    // }
                     for(rule in config[selector]){
                         SELF.rules[SELF.indexes[selector]].style[rule] = config[selector][rule]
                     }
@@ -52,7 +41,7 @@ new class JHCR_STYLE_CONTsOLLER {
                         : selector
                     currentRule = currentSelector + "{";
                     for(rule in config[selector]){
-                        if(rule !== "children" && rule !== "types") {
+                        if(rule !== "children" && rule !== "callback" && rule !== "types") {
                             currentRule += rule + ":" + config[currentSelector][rule] + ";";
                         }
                     }
@@ -77,6 +66,9 @@ new class JHCR_STYLE_CONTsOLLER {
                     }
                     if(!SELF.indexes[selector]) {
                         SELF.indexes[selector] = SELF.sheet.insertRule(currentRuleString, SELF.rules.length);
+                        if(config[selector].callback) {
+                            config[selector].callback(SELF.rules[SELF.indexes[selector]])
+                        }
                     }
                 }
             }

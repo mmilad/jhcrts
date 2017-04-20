@@ -1,5 +1,4 @@
 new class JHCR_REQUEST_CONTROLLER {
-    newDataBase:any
     get:any
     post:any
     request:Function
@@ -20,7 +19,6 @@ new class JHCR_REQUEST_CONTROLLER {
             }
             function httpGetAsync(config) {
                 var xmlHttp = new XMLHttpRequest();
-                
                 xmlHttp.open(config.type, config.url, config.async)
                 xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
                 xmlHttp.onreadystatechange = function() { 
@@ -31,37 +29,19 @@ new class JHCR_REQUEST_CONTROLLER {
                 xmlHttp.send(config.data)
             }
             this.request = function(config) {
-                var baseConfig = {
-                        url:"",
-                        prepend: {
-                            js:[],
-                            css:[]
-                        },
-                        append: {
-                            js:[],
-                            css:[]
-                        },
-                        callback: function() {
-
-                        },
-                        appendJhcr: true
-                    },
-                    frame;
-
+                SELF.post(config);
             }
-            this.loadJsFile = function(url, callback){
-
+            this.loadJsFile = function(config){
                 var script = document.createElement("script")
                 script.type = "text/javascript";
                 script.onload = function(e){
                     window["config"]
-                    callback(e);
+                    config.callback(e);
                 };
-
-                script.src = url;
+                script.src = config.url;
                 document.getElementsByTagName("head")[0].appendChild(script);
             }
-            // if(config) {this.request(config)}
+            if(config) {this.request(config)}
             return this
         }
     }
