@@ -4,7 +4,6 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
         J.HELPER.magic = function(){
             function JHCR_MagicObject(){
                 var db = Object.create({}),
-                    litter,
                     sets=[]
                     db.__proto__.value = ""
                     db.__proto__.onSet = []
@@ -21,10 +20,7 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
                 return db
             }
             function configProp(obj, prop) {
-                var db = JHCR_MagicObject(),
-                    i,
-                    isObj=false,
-                    storage
+                var i, db = JHCR_MagicObject()                    
                 if(!obj.__proto__[prop]){
                     Object.defineProperty(obj.__proto__, prop,{
                         get () {
@@ -39,13 +35,10 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
                             });
                             db.__proto__.value = e
                             if(typeof e === "object") {
-                                isObj=true
                                 for(i in e) {
                                     if(!db[i]){db.set = i}
                                     db[i] = e[i]
                                 }
-                            } else {
-                                isObj=false
                             }
                         }
                     });
