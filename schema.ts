@@ -2,13 +2,15 @@ var J:any = {
     HELPER: {},
     registry : {}
 }
+J.helper = J.HELPER
 var JHCRdocObserver = new MutationObserver(function(mutations) {     
     // var key,itemFound;
     this;
     mutations.forEach(function(mutation) {
         for(var i in mutation.addedNodes) {
-            if(J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onAdd) {
-                    J.registry[mutation.addedNodes[i].localName].onAdd(mutation.addedNodes[i]);
+            if(J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onSet) {
+                    mutation.addedNodes[i].data = J.HELPER.magic()
+                    J.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
             }
         }
         for(var i in mutation.removedNodes) {

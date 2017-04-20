@@ -1,70 +1,19 @@
-<!DOCTYPE html>
 <html>
     <head>
         <script type="text/javascript" src="src/build.js"></script>
+        <script type="text/javascript" src="src/schema.js"></script>
+        <script type="text/javascript" src="src/components/navigation.js"></script>
+        <script type="text/javascript" src="src/components/hcontroller/hcontroller.js"></script>
+        <script type="text/javascript" src="src/components/home/home.js"></script>
         <script type="text/javascript" src="src/main.js"></script>
-        <style></style>
         <script>
-            log= console.log;
-
-
-var myObj = J.HELPER.newDataBase({
-    name: "milad",
-    alter: 30
-});
-
-myObj.onSet = {
-    name: function(a){
-        console.log(a)
-    }
-}
-myObj.name = {q:{w:{e:"2"}}};
-myObj.name.q.w.e ="asdas22222222222222d"
-myObj.gesucgt = {}
-
-var conf = {
-    milad: {
-        onAdd : function(e) {
-            
-            var counter = 0;
-            var pg = {tag:"p", callbacks:[{event:"click", callback: function(){
-                counter++;
-                counter<10 ? console.log("hol dir ein bier") : console.log("JETZ aber schnell")
-            }}]};
-            J.H(pg);
-            pg.element.innerHTML =" hello world !!! ";
-            e.appendChild(pg.element)
-        }
-    }
-}
-                J.H().register(conf);
             window.onload = function() {
-                document.body.appendChild(document.createElement('boss-milad'));
-                document.body.appendChild(document.createElement('boss-milad'));
-                document.body.appendChild(document.createElement('boss-milad'));
-                // customElements.define(
-                //     'my-element',
-                //     class extends HTMLElement {
-                //         constructor() {
-                //         super();
-                //         var SELF = this;
-                //             this.addEventListener('click', function(){
-                //                 console.log("jooo");
-                //             })
-                //             customElements.whenDefined('my-element').then(function() {
-                //                 SELF.append(document.createElement('a'));
-                //                 // Do something related to the element
-                //             })
-                                
-                //         }
-                //     }
-                // );
-
-                main();
+                // main();
             }
         </script>
     </head>
     <body>
+        <j-nav></j-nav>
         <milad></milad>
     </body>
 </html>

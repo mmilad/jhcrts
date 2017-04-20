@@ -2,13 +2,15 @@ var J = {
     HELPER: {},
     registry: {}
 };
+J.helper = J.HELPER;
 var JHCRdocObserver = new MutationObserver(function (mutations) {
     // var key,itemFound;
     this;
     mutations.forEach(function (mutation) {
         for (var i in mutation.addedNodes) {
-            if (J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onAdd) {
-                J.registry[mutation.addedNodes[i].localName].onAdd(mutation.addedNodes[i]);
+            if (J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onSet) {
+                mutation.addedNodes[i].data = J.HELPER.magic();
+                J.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
             }
         }
         for (var i in mutation.removedNodes) {
@@ -24,9 +26,6 @@ new (function () {
         var _this = this;
         J.H = function (config) {
             // HController START
-            if (!_this.dataBase) {
-                _this.dataBase = new J.HELPER.DATA.newDataBase();
-            }
             function init(config, db) {
                 var literator;
                 config.tag = !config.tag ? 'div' : config.tag;
@@ -57,11 +56,28 @@ new (function () {
                     });
                 }
                 if (config.bind) {
-                    config.bind.element = config.element;
-                    db.bind(config.bind);
-                    if (db.data[config.bind.data]) {
-                        db.data[config.bind.data] = db.data[config.bind.data];
+                    if (config.bind.property) {
+                        config.element[config.bind.property] = config.bind.data.value;
                     }
+                    if (config.bind.attribute) {
+                        config.element.setAttribute(config.bind.attribute, config.bind.data.value);
+                    }
+                    config.bind.data.onSet.push(function (e) {
+                        if (config.element) {
+                            if (config.bind.property) {
+                                config.element[config.bind.property] = e.value;
+                            }
+                            if (config.bind.attribute) {
+                                config.element.setAttribute(config.bind.attribute, config.bind.data.value);
+                            }
+                        }
+                        if (config.bind.callback) {
+                            config.bind.callback(e);
+                        }
+                    });
+                    // config.bind.element = config.element
+                    // db.bind(config.bind)
+                    // if(db.data[config.bind.data]) {db.data[config.bind.data] = db.data[config.bind.data] }
                 }
                 return config.element;
             }
@@ -226,127 +242,55 @@ new (function () {
 J.HELPER.DATA = {};
 new (function () {
     function JHCR_HELPER_DATABASE_CONTROLLER() {
-        J.HELPER.newDataBase = function (data, config) {
-            function JHCR_MagicObject(obj, p) {
-                var litter, that = this;
-                this.isJHCR_MagicObject = true;
-                this.value = obj;
-                this.nodeOf = p ? p : null;
-                this.items = {};
-                this._onGet = {};
-                this._onSet = {};
-                // this. = function() {
-                // }
-                // debugger;
-                for (var name in obj) {
-                    Object.defineProperty(this, name, {
+        J.HELPER.magic = function () {
+            function JHCR_MagicObject() {
+                var db = Object.create({}), litter, sets = [];
+                db.__proto__.value = "";
+                db.__proto__.onSet = [];
+                Object.defineProperty(db.__proto__, "set", {
+                    get: function () {
+                        return sets;
+                    },
+                    set: function (e) {
+                        sets.push(e);
+                        configProp(db, e);
+                        db.__proto__.value = e;
+                    }
+                });
+                return db;
+            }
+            function configProp(obj, prop) {
+                var db = JHCR_MagicObject(), i, isObj = false, storage;
+                if (!obj.__proto__[prop]) {
+                    Object.defineProperty(obj.__proto__, prop, {
                         get: function () {
-                            for (litter in this.onGet) {
-                                this.onGet[litter]();
-                            }
-                            ;
-                            return this.items[name];
+                            return db;
                         },
                         set: function (e) {
-                            for (litter in this.onSet) {
-                                this.onSet[litter]({
-                                    newVal: e,
-                                    oldVal: this.value[name]
+                            db.onSet.forEach(function (cb) {
+                                cb({
+                                    oldValue: db.__proto__.value,
+                                    value: e
                                 });
-                            }
-                            ;
-                            if (typeof e !== "object") {
-                                this.value[name] = e;
+                            });
+                            db.__proto__.value = e;
+                            if (typeof e === "object") {
+                                isObj = true;
+                                for (i in e) {
+                                    if (!db[i]) {
+                                        db.set = i;
+                                    }
+                                    db[i] = e[i];
+                                }
                             }
                             else {
-                                this.value[name] = e;
-                                this.items[name] = new JHCR_MagicObject(e, this);
+                                isObj = false;
                             }
                         }
                     });
-                    this[name] = obj[name];
                 }
             }
-            return data ? new JHCR_MagicObject(data, null) : new JHCR_MagicObject({ data: "" }, null);
-        };
-        J.HELPER.DATA.newDataBase = function () {
-            return new function () {
-                var ATTACHMENTS = [], BACKUP = {}, BACKUP_VERSIONS = {}, DATABASE = document.createElement('select'), obj = {};
-                obj.data = DATABASE.dataset;
-                obj.bind = function (config) {
-                    if (!ATTACHMENTS[config.data]) {
-                        ATTACHMENTS[config.data] = [];
-                    }
-                    ATTACHMENTS[config.data].push(config);
-                };
-                function conCamel(input) {
-                    return input.toLowerCase().replace(/-(.)/g, function (match, group1) {
-                        return group1.toUpperCase();
-                    });
-                }
-                function makeBackUp(dataName) {
-                    if (!BACKUP[dataName]) {
-                        BACKUP[dataName] = [];
-                    }
-                    BACKUP[dataName].push(obj.data[dataName]);
-                    BACKUP_VERSIONS[dataName]++;
-                }
-                function checkItem(dataName) {
-                    !BACKUP[dataName] ? BACKUP[dataName] = [] : false;
-                    !BACKUP_VERSIONS[dataName] ? BACKUP_VERSIONS[dataName] = 0 : false;
-                }
-                function init(db) {
-                    var docObserver = new MutationObserver(function (mutations) {
-                        var key, itemFound;
-                        mutations.forEach(function (mutation) {
-                            key = conCamel(mutation.attributeName.substring(5));
-                            checkItem(key);
-                            if (ATTACHMENTS[key]) {
-                                ATTACHMENTS[key].forEach(function (config) {
-                                    if (config.element) {
-                                        if (config.attribute) {
-                                            if (config.attribute === "plain") {
-                                                if (BACKUP_VERSIONS[key] !== 0) {
-                                                    var lastVersion = BACKUP[key][BACKUP_VERSIONS[key] - 1], lastValue = config.element.getAttribute(lastVersion);
-                                                    if (lastValue) {
-                                                        lastValue = '';
-                                                    }
-                                                    config.element.removeAttribute(lastVersion);
-                                                    config.element.setAttribute(db[key], lastValue);
-                                                }
-                                                else {
-                                                    config.element.setAttribute(db[key], '');
-                                                }
-                                            }
-                                        }
-                                        if (config.property) {
-                                            config.element[config.property] = db[key];
-                                        }
-                                    }
-                                    if (config.find) {
-                                        itemFound = document.querySelectorAll(config.find);
-                                        itemFound.forEach(function (itemInstance) {
-                                            if (config.attribute) {
-                                                itemInstance.setAttribute(config.attribute, db[key]);
-                                            }
-                                            if (config.property) {
-                                                itemInstance[config.property] = db[key];
-                                            }
-                                        });
-                                    }
-                                    !config.callback ? false : config.callback(db[key]);
-                                    makeBackUp(key);
-                                });
-                            }
-                        });
-                    });
-                    docObserver.observe(DATABASE, { attributes: true });
-                }
-                init(DATABASE.dataset);
-                return obj;
-            };
-        };
-        J.HELPER.DATA.db = function () {
+            return JHCR_MagicObject();
         };
     }
     return JHCR_HELPER_DATABASE_CONTROLLER;

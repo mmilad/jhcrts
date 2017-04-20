@@ -6,9 +6,6 @@ new class JHCR_ELEMENT_CONTROLER {
     constructor(){
         J.H = (config) => { 
             // HController START
-            if(!this.dataBase) {
-                this.dataBase =  new J.HELPER.DATA.newDataBase()
-            }
             function init(config, db) {
                 var literator
                 config.tag = !config.tag ? 'div' : config.tag
@@ -39,9 +36,29 @@ new class JHCR_ELEMENT_CONTROLER {
                     })
                 }
                 if(config.bind) {
-                    config.bind.element = config.element
-                    db.bind(config.bind)
-                    if(db.data[config.bind.data]) {db.data[config.bind.data] = db.data[config.bind.data] }
+                        if(config.bind.property) {
+                            config.element[config.bind.property] = config.bind.data.value
+                        }
+                        if(config.bind.attribute) {
+                            config.element.setAttribute(config.bind.attribute, config.bind.data.value)
+                        }
+                        config.bind.data.onSet.push(function(e){
+                            if(config.element) {
+                                if(config.bind.property) {
+                                    config.element[config.bind.property] = e.value
+                                }
+                                if(config.bind.attribute) {
+                                    config.element.setAttribute(config.bind.attribute, config.bind.data.value)
+                                }
+                            }
+                            if(config.bind.callback){
+                                config.bind.callback(e)
+                            }
+                        })
+
+                    // config.bind.element = config.element
+                    // db.bind(config.bind)
+                    // if(db.data[config.bind.data]) {db.data[config.bind.data] = db.data[config.bind.data] }
                 }
                 return config.element
             }
