@@ -24,10 +24,21 @@ JHCRdocObserver.observe(document, { childList: true, subtree: true });
 new (function () {
     function JHCR_ELEMENT_CONTROLER() {
         var _this = this;
+        var types = {};
         J.H = function (config) {
             // HController START
             function init(config) {
                 var literator;
+                if (typeof config === "string") {
+                    config = { tag: config };
+                }
+                if (config.types) {
+                    config.types.forEach(function (type) {
+                        for (literator in types[type]) {
+                            config[literator] = types[type][literator];
+                        }
+                    });
+                }
                 config.tag = !config.tag ? 'div' : config.tag;
                 config.element = document.createElement(config.tag);
                 !config.value ? false : config.element.value = config.value;
@@ -82,6 +93,11 @@ new (function () {
                 var item;
                 for (item in config) {
                     J.registry[item] = config[item];
+                }
+            };
+            _this.addType = function (typeConfig) {
+                for (var t in typeConfig) {
+                    types[t] = typeConfig[t];
                 }
             };
             if (config) {
@@ -147,6 +163,7 @@ new (function () {
 new (function () {
     function JHCR_STYLE_CONTsOLLER() {
         var _this = this;
+        var types = {};
         this.initialized = false;
         var SELF = this;
         J.C = function (config) {
@@ -187,6 +204,13 @@ new (function () {
                 return currentRule;
             }
             function addStyle(config) {
+                if (config.types) {
+                    config.types.forEach(function (type) {
+                        for (literator in types[type]) {
+                            config[literator] = types[type][literator];
+                        }
+                    });
+                }
                 var index = 0, selector, rule, currentRule = {}, currentRuleString;
                 for (selector in config) {
                     currentRuleString = styleObjToStr((_a = {}, _a[selector] = config[selector], _a), false);
@@ -211,6 +235,11 @@ new (function () {
                 }
                 var _a;
             }
+            _this.addType = function (typeConfig) {
+                for (var t in typeConfig) {
+                    types[t] = typeConfig[t];
+                }
+            };
             if (config) {
                 addStyle(config);
             }

@@ -6,7 +6,9 @@ new class JHCR_STYLE_CONTsOLLER {
     STYLE_LIST:any
     STYLE_ELEMENT:any
     initialized:boolean
+    addType:Function
     constructor(){
+        var types = {}
         this.initialized = false
         var SELF = this
         J.C = (config) => {
@@ -50,6 +52,13 @@ new class JHCR_STYLE_CONTsOLLER {
                 return currentRule
             }
             function addStyle(config) {
+                if(config.types) {
+                    config.types.forEach(function(type){
+                        for(literator in types[type]) {
+                            config[literator] = types[type][literator]
+                        }
+                    })
+                }
                 var index = 0, selector, rule, currentRule={}, currentRuleString;
                 for (selector in config) {
                     currentRuleString = styleObjToStr({[selector]:config[selector]}, false)
@@ -70,6 +79,11 @@ new class JHCR_STYLE_CONTsOLLER {
                             config[selector].callback(SELF.rules[SELF.indexes[selector]])
                         }
                     }
+                }
+            }
+            this.addType = function(typeConfig) {
+                for( var t in typeConfig) {
+                    types[t] = typeConfig[t]
                 }
             }
             if(config) {
