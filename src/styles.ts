@@ -52,15 +52,15 @@ new class JHCR_STYLE_CONTsOLLER {
                 return currentRule
             }
             function addStyle(config) {
-                if(config.types) {
-                    config.types.forEach(function(type){
-                        for(literator in types[type]) {
-                            config[literator] = types[type][literator]
-                        }
-                    })
-                }
                 var index = 0, selector, rule, currentRule={}, currentRuleString;
                 for (selector in config) {
+                    if(config[selector].types) {
+                        config[selector].types.forEach(function(type){
+                            for(literator in types[type]) {
+                                config[selector][literator] = types[type][literator]
+                            }
+                        })
+                    }
                     currentRuleString = styleObjToStr({[selector]:config[selector]}, false)
                     if(config[selector].children) {
                         addStyle(config[selector].children)

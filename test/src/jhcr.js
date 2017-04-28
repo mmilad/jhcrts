@@ -4,12 +4,19 @@ var J = {
 };
 J.helper = J.HELPER;
 var JHCRdocObserver = new MutationObserver(function (mutations) {
-    // var key,itemFound;
-    this;
     mutations.forEach(function (mutation) {
         for (var i in mutation.addedNodes) {
             if (J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onSet) {
-                mutation.addedNodes[i].data = J.HELPER.magic();
+                var db = J.HELPER.magic();
+                db.set = "data";
+                Object.defineProperty(mutation.addedNodes[i], "data", {
+                    get: function () {
+                        return db.data;
+                    },
+                    set: function (e) {
+                        db.data = e;
+                    }
+                });
                 J.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
             }
         }
@@ -204,15 +211,15 @@ new (function () {
                 return currentRule;
             }
             function addStyle(config) {
-                if (config.types) {
-                    config.types.forEach(function (type) {
-                        for (literator in types[type]) {
-                            config[literator] = types[type][literator];
-                        }
-                    });
-                }
                 var index = 0, selector, rule, currentRule = {}, currentRuleString;
                 for (selector in config) {
+                    if (config[selector].types) {
+                        config[selector].types.forEach(function (type) {
+                            for (literator in types[type]) {
+                                config[selector][literator] = types[type][literator];
+                            }
+                        });
+                    }
                     currentRuleString = styleObjToStr((_a = {}, _a[selector] = config[selector], _a), false);
                     if (config[selector].children) {
                         addStyle(config[selector].children);
@@ -252,9 +259,9 @@ J.HELPER.DATA = {};
 new (function () {
     function JHCR_HELPER_DATABASE_CONTROLLER() {
         J.HELPER.magic = function () {
+            var killed = false;
             function JHCR_MagicObject() {
                 var db = Object.create({}), sets = [];
-                db.__proto__.value = "";
                 db.__proto__.onSet = [];
                 Object.defineProperty(db.__proto__, "set", {
                     get: function () {
@@ -263,7 +270,6 @@ new (function () {
                     set: function (e) {
                         sets.push(e);
                         configProp(db, e);
-                        db.__proto__.value = e;
                     }
                 });
                 return db;
@@ -276,6 +282,14 @@ new (function () {
                             return db;
                         },
                         set: function (e) {
+                            if (!killed) {
+                                console.log("killing " + prop);
+                                killed = true;
+                                for (i in db.set) {
+                                    killData(db, db.set[i]);
+                                }
+                                killed = false;
+                            }
                             db.onSet.forEach(function (cb) {
                                 cb({
                                     oldValue: db.__proto__.value,
@@ -293,6 +307,13 @@ new (function () {
                             }
                         }
                     });
+                }
+            }
+            function killData(obj, data) {
+                var i;
+                obj[data] = "";
+                for (i in obj[data].set) {
+                    killData(obj[data], obj[data].set[i]);
                 }
             }
             return JHCR_MagicObject();

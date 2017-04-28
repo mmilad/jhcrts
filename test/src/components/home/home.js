@@ -18,9 +18,8 @@ J.H().register({
                 }
             })
             J.H(newElem)
-
-            J.C({
-                home: {
+            J.C().addType({
+                homeContainer: {
                     border: "1px solid black",
                     height: "200px",
                     width: "200px",
@@ -31,7 +30,8 @@ J.H().register({
                     }
                 }
             });
-            
+
+            J.C({home:{types:["homeContainer"]}})
             J.R({
                 url:"src/test.json",
                 callback: function(e) {

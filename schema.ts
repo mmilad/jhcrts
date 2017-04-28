@@ -3,13 +3,20 @@ var J:any = {
     registry : {}
 }
 J.helper = J.HELPER
-var JHCRdocObserver = new MutationObserver(function(mutations) {     
-    // var key,itemFound;
-    this;
+var JHCRdocObserver = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
         for(var i in mutation.addedNodes) {
             if(J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onSet) {
-                    mutation.addedNodes[i].data = J.HELPER.magic()
+                    var db=J.HELPER.magic();
+                    db.set="data";
+                    Object.defineProperty(mutation.addedNodes[i], "data", {
+                        get() {
+                            return db.data;
+                        },
+                        set(e) {
+                            db.data = e;
+                        }
+                    });
                     J.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
             }
         }

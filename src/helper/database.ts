@@ -2,10 +2,10 @@ J.HELPER.DATA = {};
 new class JHCR_HELPER_DATABASE_CONTROLLER {
     constructor(){
         J.HELPER.magic = function(){
+            var killed = false;
             function JHCR_MagicObject(){
                 var db = Object.create({}),
                     sets=[]
-                    db.__proto__.value = ""
                     db.__proto__.onSet = []
                 Object.defineProperty(db.__proto__, "set",{
                     get () {
@@ -14,7 +14,6 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
                     set (e) {
                         sets.push(e)
                         configProp(db, e)
-                        db.__proto__.value = e
                     }
                 });
                 return db
@@ -27,6 +26,14 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
                             return db
                         },
                         set (e) {
+                            if(!killed){
+                                console.log("killing "+prop)
+                                killed = true;
+                                for(i in db.set) {
+                                    killData(db, db.set[i]);
+                                }
+                                killed = false;
+                            }
                             db.onSet.forEach(function(cb) {
                                 cb({
                                     oldValue: db.__proto__.value,
@@ -42,6 +49,13 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
                             }
                         }
                     });
+                }
+            }
+            function killData(obj, data) {
+                var i;
+                obj[data]="";
+                for(i in obj[data].set) {
+                    killData(obj[data], obj[data].set[i]);
                 }
             }
             return JHCR_MagicObject();
