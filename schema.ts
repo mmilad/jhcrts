@@ -4,7 +4,7 @@ var J:any = {
 }
 J.helper = J.HELPER
 var JHCRdocObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
+    mutations.forEach(function(mutation:any) {
         for(var i in mutation.addedNodes) {
             if(J.registry[mutation.addedNodes[i].localName] && J.registry[mutation.addedNodes[i].localName].onSet) {
                     var db=J.HELPER.magic();
@@ -17,6 +17,8 @@ var JHCRdocObserver = new MutationObserver(function(mutations) {
                             db.data = e;
                         }
                     });
+                    mutation.addedNodes[i].find = mutation.addedNodes[i].querySelectorAll;
+                    mutation.addedNodes[i].f = mutation.addedNodes[i].querySelectorAll;
                     J.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
             }
         }

@@ -27,7 +27,6 @@ new class JHCR_HELPER_DATABASE_CONTROLLER {
                         },
                         set (e) {
                             if(!killed){
-                                console.log("killing "+prop)
                                 killed = true;
                                 for(i in db.set) {
                                     killData(db, db.set[i]);
