@@ -187,70 +187,100 @@ new (function () {
                 _this.STYLE_LIST = {};
                 _this.initialized = true;
             }
-            _this.update = function (config) {
-                var newConfig = {}, selector, rule, currentRules;
-                for (selector in config) {
-                    for (rule in config[selector]) {
-                        SELF.rules[SELF.indexes[selector]].style[rule] = config[selector][rule];
-                    }
-                }
-                addStyle(newConfig);
-            };
-            function styleObjToStr(config, currentSelector) {
-                var selector, rule, currentRule;
-                for (selector in config) {
-                    currentSelector = currentSelector
-                        ? currentSelector + " " + selector
-                        : selector;
-                    currentRule = currentSelector + "{";
-                    for (rule in config[selector]) {
-                        if (rule !== "children" && rule !== "callback" && rule !== "types") {
-                            currentRule += rule + ":" + config[currentSelector][rule] + ";";
+            function styleObjToStr2(config) {
+                var rule, currentRule, currentSelector = config.currentSelector, rules = config.rules;
+                currentRule = currentSelector + "{";
+                for (rule in rules) {
+                    if (rule !== "style") {
+                        if (typeof rules[rule] !== "object") {
+                            currentRule += rule + ":" + rules[rule] + ";";
+                        }
+                        else {
+                            var newSelector;
+                            if (rule.charAt(0) === "&") {
+                                newSelector = config.currentSelector + rule.substr(1);
+                            }
+                            else {
+                                newSelector = config.currentSelector + " " + rule;
+                            }
+                            configStyle({
+                                rules: config.rules[rule],
+                                currentSelector: newSelector
+                            });
                         }
                     }
-                    currentRule += "}";
                 }
+                currentRule += "}";
                 return currentRule;
             }
-            function addStyle(config) {
-                var index = 0, selector, rule, currentRule = {}, currentRuleString;
-                for (selector in config) {
-                    if (config[selector].types) {
-                        config[selector].types.forEach(function (type) {
-                            for (literator in types[type]) {
-                                config[selector][literator] = types[type][literator];
-                            }
-                        });
-                    }
-                    currentRuleString = styleObjToStr((_a = {}, _a[selector] = config[selector], _a), false);
-                    if (config[selector].children) {
-                        addStyle(config[selector].children);
-                    }
-                    currentRule[selector] = config[selector];
-                    if (!SELF.STYLE_LIST[selector]) {
-                        SELF.STYLE_LIST[selector] = {};
-                        SELF.STYLE_LIST[selector].rules = config[selector];
-                        SELF.STYLE_LIST[selector].config = {};
+            function configStyle(config) {
+                var rule, styleStr;
+                if (config.currentSelector.charAt(0) === "@") {
+                    configSpecialStyle(config);
+                }
+                else {
+                    styleStr = styleObjToStr2(config);
+                    if (!SELF.STYLE_LIST[config.currentSelector]) {
+                        SELF.indexes[config.currentSelector] = SELF.sheet.insertRule(styleStr, SELF.rules.length);
+                        SELF.STYLE_LIST[config.currentSelector] = SELF.rules[SELF.indexes[config.currentSelector]];
+                        config.rules.style = SELF.STYLE_LIST[config.currentSelector].style;
                     }
                     else {
-                        index = SELF.STYLE_LIST[selector].config.index;
-                    }
-                    if (!SELF.indexes[selector]) {
-                        SELF.indexes[selector] = SELF.sheet.insertRule(currentRuleString, SELF.rules.length);
-                        if (config[selector].callback) {
-                            config[selector].callback(SELF.rules[SELF.indexes[selector]]);
+                        for (rule in config.rules) {
+                            if (rule !== "style") {
+                                if (typeof config.rules[rule] !== "object") {
+                                    SELF.STYLE_LIST[config.currentSelector].style[rule] = config.rules[rule];
+                                }
+                                else {
+                                    var newSelector;
+                                    if (rule.charAt(0) === "&") {
+                                        newSelector = config.currentSelector + rule.substr(1);
+                                    }
+                                    else {
+                                        newSelector = config.currentSelector + " " + rule;
+                                    }
+                                    configStyle({
+                                        rules: config.rules[rule],
+                                        currentSelector: newSelector
+                                    });
+                                }
+                            }
                         }
                     }
                 }
-                var _a;
             }
+            function configSpecialStyle(config) {
+                if (config.currentSelector.substr(0, 10) === "@Keyframes") {
+                    addKeyframes(config);
+                }
+            }
+            function addKeyframes(config) {
+                var styleStr = config.currentSelector + " {", step;
+                for (step in config.rules) {
+                    styleStr += styleObjToStr2({
+                        rules: config.rules[step],
+                        currentSelector: step
+                    });
+                }
+                styleStr += "}";
+                SELF.STYLE_LIST[config.currentSelector] = SELF.rules[SELF.sheet.insertRule(styleStr, SELF.rules.length)];
+            }
+            _this.getRule = function (selector) {
+                return SELF.STYLE_LIST[selector].style;
+            };
             _this.addType = function (typeConfig) {
                 for (var t in typeConfig) {
                     types[t] = typeConfig[t];
                 }
             };
             if (config) {
-                addStyle(config);
+                var styleName;
+                for (styleName in config) {
+                    configStyle({
+                        rules: config[styleName],
+                        currentSelector: styleName
+                    });
+                }
             }
             return _this;
         };
