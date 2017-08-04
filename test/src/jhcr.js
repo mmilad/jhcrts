@@ -17,6 +17,8 @@ var JHCRdocObserver = new MutationObserver(function (mutations) {
                         db.data = e;
                     }
                 });
+                mutation.addedNodes[i].find = mutation.addedNodes[i].querySelectorAll;
+                mutation.addedNodes[i].f = mutation.addedNodes[i].querySelectorAll;
                 J.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
             }
         }
@@ -283,7 +285,6 @@ new (function () {
                         },
                         set: function (e) {
                             if (!killed) {
-                                console.log("killing " + prop);
                                 killed = true;
                                 for (i in db.set) {
                                     killData(db, db.set[i]);
