@@ -1,4 +1,4 @@
-new class JHCR_REQUEST_CONTROLLER {
+class JHCR_REQUEST_CONTROLLER {
     get:any
     post:any
     request:Function

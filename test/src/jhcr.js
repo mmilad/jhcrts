@@ -30,95 +30,91 @@ var JHCRdocObserver = new MutationObserver(function (mutations) {
     });
 });
 JHCRdocObserver.observe(document, { childList: true, subtree: true });
-new (function () {
-    function JHCR_ELEMENT_CONTROLER() {
-        var _this = this;
-        var types = {};
-        J.H = function (config) {
-            // HController START
-            function init(config) {
-                var literator;
-                if (typeof config === "string") {
-                    config = { tag: config };
+J.html = {
+    render: function (config) {
+        var element, has = {
+            attributes: function (config) {
+                for (var i in config) {
+                    element.setAttribute(i, config[i]);
                 }
-                if (config.types) {
-                    config.types.forEach(function (type) {
-                        for (literator in types[type]) {
-                            config[literator] = types[type][literator];
+            },
+            properties: function (config) {
+                for (var i in config) {
+                    element[i] = config[i];
+                }
+            },
+            children: function (config) {
+                config.forEach(function (i) {
+                    element.appendChild(this(i));
+                });
+            },
+            callbacks: function (config) {
+                config.forEach(function (i) {
+                    element.addEventListener(i.event, i.callback);
+                });
+            },
+            bind: function (config) {
+                function setVals(config) {
+                    config.binds.forEach(function (i) {
+                        if (i.property) {
+                            element[i.property] = config.i.data.value;
+                        }
+                        if (i.attribute) {
+                            element.setAttribute(i.attribute, i.data.value);
+                        }
+                        if (i.callback) {
+                            i.callback(i.data.value);
                         }
                     });
                 }
-                config.tag = !config.tag ? 'div' : config.tag;
-                config.element = document.createElement(config.tag);
-                !config.value ? false : config.element.value = config.value;
-                !config.html ? false : config.element.innerHTML = config.html;
-                !config.class ? false : config.element.className = config.class;
-                if (config.attributes) {
-                    literator = "";
-                    for (literator in config.attributes) {
-                        config.element.setAttribute(literator, config.attributes[literator]);
-                    }
-                }
-                if (config.properties) {
-                    literator = "";
-                    for (literator in config.properties) {
-                        config.element[literator] = config.properties[literator];
-                    }
-                }
-                if (config.children) {
-                    config.children.forEach(function (instance) {
-                        config.element.appendChild(init(instance));
-                    });
-                }
-                if (config.callbacks) {
-                    config.callbacks.forEach(function (instance) {
-                        config.element.addEventListener(instance.event, instance.callback);
-                    });
-                }
-                if (config.bind) {
-                    if (config.bind.property) {
-                        config.element[config.bind.property] = config.bind.data.value;
-                    }
-                    if (config.bind.attribute) {
-                        config.element.setAttribute(config.bind.attribute, config.bind.data.value);
-                    }
-                    config.bind.data.onSet.push(function (e) {
-                        if (config.element) {
-                            if (config.bind.property) {
-                                config.element[config.bind.property] = e.value;
-                            }
-                            if (config.bind.attribute) {
-                                config.element.setAttribute(config.bind.attribute, config.bind.data.value);
-                            }
-                        }
-                        if (config.bind.callback) {
-                            config.bind.callback(e);
-                        }
-                    });
-                }
-                return config.element;
+                setVals(config);
+                config.data.onSet.push(function (e) {
+                    setVals(config);
+                });
             }
-            _this.register = function (config) {
-                var item;
-                for (item in config) {
-                    J.registry[item] = config[item];
-                }
-            };
-            _this.addType = function (typeConfig) {
-                for (var t in typeConfig) {
-                    types[t] = typeConfig[t];
-                }
-            };
-            if (config) {
-                init(config);
-            }
-            return _this;
-            // HController END
         };
+        if (typeof config === "string") {
+            config = { tag: config };
+        }
+        if (config.types) {
+            config.types.forEach(function (t) {
+                for (var i in this.types[t]) {
+                    config[i] = this.types[t][i];
+                }
+            });
+        }
+        if (config.type) {
+            for (var i in config.types[config.type]) {
+                if (!config[i])
+                    config[i] = config.types[config.type][i];
+            }
+        }
+        config.tag = !config.tag ? 'div' : config.tag;
+        element = document.createElement(config.tag);
+        !config.value ? false : element.value = config.value;
+        !config.html ? false : element.innerHTML = config.html;
+        !config.class ? false : element.className = config.class;
+        for (var i in config) {
+            if (has[i])
+                has[i](config[i]);
+        }
+        return element;
     }
-    return JHCR_ELEMENT_CONTROLER;
-}());
-new (function () {
+};
+J.html.types = {};
+J.html.registry = {};
+J.html.register = function (config) {
+    for (var i in config) {
+        J.registry[i] = config[i];
+        J.html.registry[i] = config[i];
+    }
+};
+J.html.addType = function (config) {
+    for (var t in config) {
+        J.html.types[t] = config[t];
+    }
+};
+var JHCR_REQUEST_CONTROLLER = (function () {
     function JHCR_REQUEST_CONTROLLER() {
         var _this = this;
         J.R = function (config) {
