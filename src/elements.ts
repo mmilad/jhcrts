@@ -35,7 +35,7 @@ J.html = (config: J_HTML_RENDER_CONFIG) => {
         },
         children: (config) => {
             config.forEach(function(i){
-                element.appendChild(this(i))
+                element.appendChild(J.html(i))
             })
         },
         callbacks: (config) => {

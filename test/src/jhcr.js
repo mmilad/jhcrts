@@ -44,7 +44,7 @@ J.html = function (config) {
         },
         children: function (config) {
             config.forEach(function (i) {
-                element.appendChild(this(i));
+                element.appendChild(J.html(i));
             });
         },
         callbacks: function (config) {
@@ -294,24 +294,38 @@ J.css = function (config) {
         that.indexes = {};
         that.STYLE_LIST = {};
     }
-    for (var i in config) {
-        addToStyles(i, config[i]);
+    callAddToStyles(false, config);
+    function callAddToStyles(parentSelector, config) {
+        var _loop_1 = function (i) {
+            i.split(',').forEach(function (selector) {
+                if (selector.charAt(0) === "@") {
+                }
+                else {
+                    var newSelector = parentSelector ? (parentSelector + " " + selector).replace(" &", "") : selector;
+                    addToStyles(newSelector, config[i]);
+                }
+            });
+        };
+        for (var i in config) {
+            _loop_1(i);
+        }
     }
     function addToStyles(selector, style) {
-        var currentStyle;
         if (!that.indexes[selector]) {
             that.indexes[selector] = that.sheet.insertRule(selector + " {}", that.rules.length);
             that.STYLE_LIST[selector] = that.rules[that.indexes[selector]];
         }
-        config.__proto__.style = currentStyle = that.STYLE_LIST[selector].style;
         for (var s in style) {
             if (s === "add") {
-                for (var newSelector in style[s]) {
-                    addToStyles((selector + newSelector).replace(" &", ""), style[s]);
-                }
+                callAddToStyles(selector, style[s]);
             }
-            currentStyle[s] = style[s];
+            else {
+                that.STYLE_LIST[selector].style[s] = style[s];
+            }
         }
+        config.__proto__.style = that.STYLE_LIST[selector].style;
+    }
+    function addMediaQuery(query, selector, rule) {
     }
     return config;
 };

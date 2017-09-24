@@ -136,29 +136,35 @@ J.css = (config) => {
         that.indexes = {}
         that.STYLE_LIST = {}
     }
-    callAddToStyles(config)
-    function callAddToStyles(config) {
+    callAddToStyles(false, config)
+    function callAddToStyles(parentSelector, config) {
         for(let i in config) {
-            
-            addToStyles(i, config[i])
+            i.split(',').forEach(function(selector) {
+                if(selector.charAt(0) === "@") {
+
+                } else {
+                    let newSelector = parentSelector ? (parentSelector + " " +selector).replace(" &", "") : selector
+                    addToStyles(newSelector, config[i])
+                }
+            });
         }   
     }
     function addToStyles(selector, style) {
-        selector = selector.replace(" &", "")
-        var currentStyle;
         if(!that.indexes[selector]) {
             that.indexes[selector] = that.sheet.insertRule(selector + " {}", that.rules.length)
             that.STYLE_LIST[selector] = that.rules[that.indexes[selector]];
         }
-        config.__proto__.style = currentStyle = that.STYLE_LIST[selector].style;
         for(let s in style) {
             if(s === "add") {
-                for(let newSelector in style[s]) {
-                    addToStyles(selector + newSelector, style[s])
-                }
+                callAddToStyles(selector, style[s])
+            } else {
+                that.STYLE_LIST[selector].style[s] = style[s];
             }
-            currentStyle[s] = style[s];
         }
+        config.__proto__.style = that.STYLE_LIST[selector].style;
+    }
+    function addMediaQuery (query, selector, rule) {
+
     }
     return config
 

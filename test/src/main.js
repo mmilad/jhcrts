@@ -3,18 +3,32 @@ function init() {
         attributes: {
             foo: "bar",
             goo: "gar",
-            class: "foo"
+            class: "foo bar"
         },
+        html: "foo bar",
         properties: {
             gesicht: "fischt"
         },
-        html: "fsdf",
         callbacks: [{
             event: "click",
             callback: function() {
                 console.log(this)
             }
-        }]
+        }],
+        children: [
+            {
+                html: "foo",
+                attributes: {
+                    class: "foo"
+                }
+            },
+            {
+                html: "bar",
+                attributes: {
+                    class: "bar"
+                }
+            }
+        ]
     };
     var el = J.html(elo);
     var styleConfig = {
@@ -22,13 +36,39 @@ function init() {
             height: "100px",
             width: "100px",
             color: "green",
+            fontWeight: "bold",
+            transition: "all 1s",
+            add: {
+                ".bar": {
+                    color: "red",
+                    transition: "all 1s"
+                },
+                "&.bar": {
+                    color: "yellow"
+                }
+            }
         }
     }
     var style = J.css(styleConfig);
     styleConfig.style.width = "200px";
     styleConfig.style.border = "solid 1px black";
-    var getStyle = J.css.getStyle('.foo')
-    // debugger
+    var fooStyle = J.css.getStyle('.foo');
+    var fooBarStyle = J.css.getStyle('.foo .bar');
+
+    setInterval(function() {
+        if(fooStyle.color !== "blue") {
+            fooStyle.color = "blue"
+        } else {
+            fooStyle.color = "red"
+            fooStyle.width = "200px"
+        }
+        if(fooBarStyle.color !== "green") {
+            fooBarStyle.color = "green"
+            fooStyle.width = "600px"
+        } else {
+            fooBarStyle.color = "purple"
+        }
+    }, 2000)
     document.body.appendChild(el)
 }
 window.onload = function() {
