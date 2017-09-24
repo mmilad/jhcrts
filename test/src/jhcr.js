@@ -30,259 +30,294 @@ var JHCRdocObserver = new MutationObserver(function (mutations) {
     });
 });
 JHCRdocObserver.observe(document, { childList: true, subtree: true });
-J.html = {
-    render: function (config) {
-        var element, has = {
-            attributes: function (config) {
-                for (var i in config) {
-                    element.setAttribute(i, config[i]);
-                }
-            },
-            properties: function (config) {
-                for (var i in config) {
-                    element[i] = config[i];
-                }
-            },
-            children: function (config) {
-                config.forEach(function (i) {
-                    element.appendChild(this(i));
-                });
-            },
-            callbacks: function (config) {
-                config.forEach(function (i) {
-                    element.addEventListener(i.event, i.callback);
-                });
-            },
-            bind: function (config) {
-                function setVals(config) {
-                    config.binds.forEach(function (i) {
-                        if (i.property) {
-                            element[i.property] = config.i.data.value;
-                        }
-                        if (i.attribute) {
-                            element.setAttribute(i.attribute, i.data.value);
-                        }
-                        if (i.callback) {
-                            i.callback(i.data.value);
-                        }
-                    });
-                }
-                setVals(config);
-                config.data.onSet.push(function (e) {
-                    setVals(config);
+J.html = function (config) {
+    var element, has = {
+        attributes: function (config) {
+            for (var i in config) {
+                element.setAttribute(i, config[i]);
+            }
+        },
+        properties: function (config) {
+            for (var i in config) {
+                element[i] = config[i];
+            }
+        },
+        children: function (config) {
+            config.forEach(function (i) {
+                element.appendChild(this(i));
+            });
+        },
+        callbacks: function (config) {
+            config.forEach(function (i) {
+                element.addEventListener(i.event, i.callback);
+            });
+        },
+        bind: function (config) {
+            function setVals(config) {
+                config.binds.forEach(function (i) {
+                    if (i.property) {
+                        element[i.property] = config.i.data.value;
+                    }
+                    if (i.attribute) {
+                        element.setAttribute(i.attribute, i.data.value);
+                    }
+                    if (i.callback) {
+                        i.callback(i.data.value);
+                    }
                 });
             }
-        };
-        if (typeof config === "string") {
-            config = { tag: config };
-        }
-        if (config.types) {
-            config.types.forEach(function (t) {
-                for (var i in this.types[t]) {
-                    config[i] = this.types[t][i];
-                }
+            setVals(config);
+            config.data.onSet.push(function (e) {
+                setVals(config);
             });
         }
-        if (config.type) {
-            for (var i in config.types[config.type]) {
-                if (!config[i])
-                    config[i] = config.types[config.type][i];
+    };
+    if (typeof config === "string") {
+        config = { tag: config };
+    }
+    if (config.types) {
+        config.types.forEach(function (t) {
+            for (var i in this.types[t]) {
+                config[i] = this.types[t][i];
             }
-        }
-        config.tag = !config.tag ? 'div' : config.tag;
-        element = document.createElement(config.tag);
-        !config.value ? false : element.value = config.value;
-        !config.html ? false : element.innerHTML = config.html;
-        !config.class ? false : element.className = config.class;
-        for (var i in config) {
-            if (has[i])
-                has[i](config[i]);
-        }
-        return element;
+        });
     }
-};
-J.html.types = {};
-J.html.registry = {};
-J.html.register = function (config) {
+    if (config.type) {
+        for (var i in config.types[config.type]) {
+            if (!config[i])
+                config[i] = config.types[config.type][i];
+        }
+    }
+    config.tag = !config.tag ? 'div' : config.tag;
+    element = config.element = document.createElement(config.tag);
+    !config.value ? false : element.value = config.value;
+    !config.html ? false : element.innerHTML = config.html;
+    !config.class ? false : element.className = config.class;
     for (var i in config) {
-        J.registry[i] = config[i];
-        J.html.registry[i] = config[i];
+        if (has[i])
+            has[i](config[i]);
+    }
+    return element;
+};
+J.html.__proto__ = {
+    types: {},
+    registry: {},
+    register: function (config) {
+        for (var i in config) {
+            J.registry[i] = config[i];
+            J.html.registry[i] = config[i];
+        }
+    },
+    addType: function (config) {
+        for (var t in config) {
+            J.html.types[t] = config[t];
+        }
     }
 };
-J.html.addType = function (config) {
-    for (var t in config) {
-        J.html.types[t] = config[t];
-    }
-};
+var _this = this;
 var JHCR_REQUEST_CONTROLLER = (function () {
     function JHCR_REQUEST_CONTROLLER() {
-        var _this = this;
-        J.R = function (config) {
-            var SELF = _this, lit;
-            _this.get = function (config) {
-                var baseConfig = { type: "GET", async: true, data: null };
-                for (lit in config) {
-                    baseConfig[lit] = config[lit];
-                }
-                httpGetAsync(baseConfig);
-            };
-            _this.post = function (config) {
-                var baseConfig = { type: "POST", async: true, data: null };
-                for (lit in config) {
-                    baseConfig[lit] = config[lit];
-                }
-                httpGetAsync(baseConfig);
-            };
-            function httpGetAsync(config) {
-                var xmlHttp = new XMLHttpRequest();
-                xmlHttp.open(config.type, config.url, config.async);
-                xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                xmlHttp.onreadystatechange = function () {
-                    if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                        config.callback(xmlHttp.responseText);
-                    }
-                };
-                xmlHttp.send(config.data);
-            }
-            _this.request = function (config) {
-                SELF.post(config);
-            };
-            _this.loadJsFile = function (config) {
-                var script = document.createElement("script");
-                script.type = "text/javascript";
-                script.onload = function (e) {
-                    window["config"];
-                    config.callback(e);
-                };
-                script.src = config.url;
-                document.getElementsByTagName("head")[0].appendChild(script);
-            };
-            if (config) {
-                _this.request(config);
-            }
-            return _this;
-        };
     }
     return JHCR_REQUEST_CONTROLLER;
 }());
-new (function () {
-    function JHCR_STYLE_CONTsOLLER() {
-        var _this = this;
-        var types = {};
-        this.initialized = false;
-        var SELF = this;
-        J.C = function (config) {
-            var literator;
-            if (!_this.initialized) {
-                _this.STYLE_ELEMENT = document.createElement('style');
-                _this.STYLE_ELEMENT.type = "text/css";
-                document.head.appendChild(_this.STYLE_ELEMENT);
-                _this.sheet = document.styleSheets[document.styleSheets.length - 1];
-                _this.rules = _this.sheet.cssRules ? _this.sheet.cssRules : _this.sheet.rules;
-                _this.indexes = {};
-                _this.STYLE_LIST = {};
-                _this.initialized = true;
-            }
-            function styleObjToStr2(config) {
-                var rule, currentRule, currentSelector = config.currentSelector, rules = config.rules;
-                currentRule = currentSelector + "{";
-                for (rule in rules) {
-                    if (rule !== "style") {
-                        if (typeof rules[rule] !== "object") {
-                            currentRule += rule + ":" + rules[rule] + ";";
-                        }
-                        else {
-                            var newSelector;
-                            if (rule.charAt(0) === "&") {
-                                newSelector = config.currentSelector + rule.substr(1);
-                            }
-                            else {
-                                newSelector = config.currentSelector + " " + rule;
-                            }
-                            configStyle({
-                                rules: config.rules[rule],
-                                currentSelector: newSelector
-                            });
-                        }
-                    }
-                }
-                currentRule += "}";
-                return currentRule;
-            }
-            function configStyle(config) {
-                var rule, styleStr;
-                if (config.currentSelector.charAt(0) === "@") {
-                    configSpecialStyle(config);
-                }
-                else {
-                    styleStr = styleObjToStr2(config);
-                    if (!SELF.STYLE_LIST[config.currentSelector]) {
-                        SELF.indexes[config.currentSelector] = SELF.sheet.insertRule(styleStr, SELF.rules.length);
-                        SELF.STYLE_LIST[config.currentSelector] = SELF.rules[SELF.indexes[config.currentSelector]];
-                        config.rules.style = SELF.STYLE_LIST[config.currentSelector].style;
-                    }
-                    else {
-                        for (rule in config.rules) {
-                            if (rule !== "style") {
-                                if (typeof config.rules[rule] !== "object") {
-                                    SELF.STYLE_LIST[config.currentSelector].style[rule] = config.rules[rule];
-                                }
-                                else {
-                                    var newSelector;
-                                    if (rule.charAt(0) === "&") {
-                                        newSelector = config.currentSelector + rule.substr(1);
-                                    }
-                                    else {
-                                        newSelector = config.currentSelector + " " + rule;
-                                    }
-                                    configStyle({
-                                        rules: config.rules[rule],
-                                        currentSelector: newSelector
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            function configSpecialStyle(config) {
-                if (config.currentSelector.substr(0, 10) === "@Keyframes") {
-                    addKeyframes(config);
-                }
-            }
-            function addKeyframes(config) {
-                var styleStr = config.currentSelector + " {", step;
-                for (step in config.rules) {
-                    styleStr += styleObjToStr2({
-                        rules: config.rules[step],
-                        currentSelector: step
-                    });
-                }
-                styleStr += "}";
-                SELF.STYLE_LIST[config.currentSelector] = SELF.rules[SELF.sheet.insertRule(styleStr, SELF.rules.length)];
-            }
-            _this.getRule = function (selector) {
-                return SELF.STYLE_LIST[selector].style;
-            };
-            _this.addType = function (typeConfig) {
-                for (var t in typeConfig) {
-                    types[t] = typeConfig[t];
-                }
-            };
-            if (config) {
-                var styleName;
-                for (styleName in config) {
-                    configStyle({
-                        rules: config[styleName],
-                        currentSelector: styleName
-                    });
-                }
-            }
-            return _this;
-        };
+J.request = function (config) {
+    var SELF = _this;
+    var baseConfig = { type: "POST", async: true, data: null };
+    for (var i in config) {
+        baseConfig[i] = config[i];
     }
-    return JHCR_STYLE_CONTsOLLER;
-}());
+    httpGetAsync(config);
+    function httpGetAsync(config) {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open(config.type, config.url, config.async);
+        xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                config.callback(xmlHttp.responseText);
+            }
+        };
+        xmlHttp.send(config.data);
+    }
+    return _this;
+};
+J.request.__proto__ = {
+    loadJs: function (config) {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.onload = function (e) {
+            window["config"];
+            config.callback(e);
+        };
+        script.src = config.url;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    },
+    build: function (config) {
+        var _this = this;
+        var that = this;
+        config.run = function () {
+            _this(config);
+        };
+        return config;
+    }
+};
+// new class JHCR_STYLE_CONTsOLLER {
+//     update:object
+//     sheet:any
+//     rules:any
+//     indexes:object
+//     STYLE_LIST:any
+//     STYLE_ELEMENT:any
+//     initialized:boolean
+//     addType:Function
+//     getRule:Function
+//     constructor(){
+//         var types = {}
+//         this.initialized = false
+//         var SELF = this
+//         J.C = (config) => {
+//             var literator:any
+//             if(!this.initialized) {
+//                 this.STYLE_ELEMENT = document.createElement('style')
+//                 this.STYLE_ELEMENT.type = "text/css"
+//                 document.head.appendChild(this.STYLE_ELEMENT)
+//                 this.sheet = document.styleSheets[document.styleSheets.length-1]
+//                 this.rules = this.sheet.cssRules ? this.sheet.cssRules :  this.sheet.rules
+//                 this.indexes = {}
+//                 this.STYLE_LIST = {}
+//                 this.initialized = true
+//             }
+//             function styleObjToStr2(config){
+//                 var rule,
+//                     currentRule,
+//                     currentSelector = config.currentSelector,
+//                     rules = config.rules
+//                     currentRule = currentSelector + "{";
+//                     for(rule in rules){
+//                         if(rule !== "style") {
+//                             if(typeof rules[rule] !== "object") {
+//                                 currentRule += rule + ":" + rules[rule] + ";";
+//                             } else {
+//                                 var newSelector
+//                                 if(rule.charAt(0) === "&") {
+//                                     newSelector = config.currentSelector+rule.substr(1)
+//                                 } else {
+//                                     newSelector = config.currentSelector+ " " + rule
+//                                 }
+//                                 configStyle({
+//                                     rules: config.rules[rule],
+//                                     currentSelector: newSelector
+//                                 })
+//                             }
+//                         }
+//                     }
+//                     currentRule += "}";
+//                 return currentRule
+//             }
+//             function configStyle(config) {
+//                 var rule, styleStr;
+//                 if(config.currentSelector.charAt(0)==="@") {
+//                     configSpecialStyle(config)
+//                 } else {
+//                     styleStr = styleObjToStr2(config)
+//                     if(!SELF.STYLE_LIST[config.currentSelector]) {
+//                         SELF.indexes[config.currentSelector] = SELF.sheet.insertRule(styleStr, SELF.rules.length)
+//                         SELF.STYLE_LIST[config.currentSelector] = SELF.rules[SELF.indexes[config.currentSelector]];
+//                         config.rules.style = SELF.STYLE_LIST[config.currentSelector].style
+//                     } else {
+//                         for(rule in config.rules) {
+//                             if(rule !== "style") {
+//                                 if(typeof config.rules[rule] !== "object") {
+//                                     SELF.STYLE_LIST[config.currentSelector].style[rule] = config.rules[rule];
+//                                 } else {
+//                                     var newSelector
+//                                     if(rule.charAt(0) === "&") {
+//                                         newSelector = config.currentSelector+rule.substr(1)
+//                                     } else {
+//                                         newSelector = config.currentSelector+ " " + rule
+//                                     }
+//                                     configStyle({
+//                                         rules: config.rules[rule],
+//                                         currentSelector: newSelector
+//                                     })
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//             function configSpecialStyle(config) {
+//                 if (config.currentSelector.substr(0, 10) === "@Keyframes") {
+//                     addKeyframes (config)
+//                 }
+//             }
+//             function addKeyframes (config){
+//                 var styleStr = config.currentSelector+" {",
+//                     step
+//                 for(step in config.rules) {
+//                     styleStr += styleObjToStr2({
+//                         rules:config.rules[step],
+//                         currentSelector: step
+//                     })
+//                 }
+//                 styleStr += "}";
+//                 SELF.STYLE_LIST[config.currentSelector] = SELF.rules[SELF.sheet.insertRule(styleStr, SELF.rules.length)];
+//             }
+//             this.getRule = function(selector) {
+//                 return SELF.STYLE_LIST[selector].style
+//             }
+//             this.addType = function(typeConfig) {
+//                 for( var t in typeConfig) {
+//                     types[t] = typeConfig[t]
+//                 }
+//             }
+//             if(config) {
+//                 var styleName
+//                 for(styleName in config) {
+//                     configStyle({
+//                         rules: config[styleName],
+//                         currentSelector: styleName
+//                     })
+//                 }
+//             }
+//             return this
+//         }
+//     }
+// }
+J.css = function (config) {
+    var that = J.css.__proto__;
+    if (!that.STYLE_ELEMENT) {
+        that.STYLE_ELEMENT = document.createElement('style');
+        that.STYLE_ELEMENT.type = "text/css";
+        document.head.appendChild(that.STYLE_ELEMENT);
+        that.sheet = document.styleSheets[document.styleSheets.length - 1];
+        that.rules = that.sheet.cssRules ? that.sheet.cssRules : that.sheet.rules;
+        that.indexes = {};
+        that.STYLE_LIST = {};
+    }
+    for (var i in config) {
+        addToStyles(i, config[i]);
+    }
+    function addToStyles(selector, style) {
+        var currentStyle;
+        if (!that.indexes[selector]) {
+            that.indexes[selector] = that.sheet.insertRule(selector + " {}", that.rules.length);
+            that.STYLE_LIST[selector] = that.rules[that.indexes[selector]];
+        }
+        config.__proto__.style = currentStyle = that.STYLE_LIST[selector].style;
+        for (var s in style) {
+            if (s === "add") {
+                for (var newSelector in style[s]) {
+                    addToStyles((selector + newSelector).replace(" &", ""), style[s]);
+                }
+            }
+            currentStyle[s] = style[s];
+        }
+    }
+    return config;
+};
+J.css.__proto__.getStyle = function (style) {
+    return J.css.STYLE_LIST[style].style;
+};
 J.HELPER.DATA = {};
 new (function () {
     function JHCR_HELPER_DATABASE_CONTROLLER() {

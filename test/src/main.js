@@ -2,7 +2,8 @@ function init() {
     var elo = {
         attributes: {
             foo: "bar",
-            goo: "gar"
+            goo: "gar",
+            class: "foo"
         },
         properties: {
             gesicht: "fischt"
@@ -15,7 +16,19 @@ function init() {
             }
         }]
     };
-    var el = J.html.render(elo);
+    var el = J.html(elo);
+    var styleConfig = {
+        ".foo": {
+            height: "100px",
+            width: "100px",
+            color: "green",
+        }
+    }
+    var style = J.css(styleConfig);
+    styleConfig.style.width = "200px";
+    styleConfig.style.border = "solid 1px black";
+    var getStyle = J.css.getStyle('.foo')
+    // debugger
     document.body.appendChild(el)
 }
 window.onload = function() {
