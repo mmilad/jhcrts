@@ -1,0 +1,12 @@
+.as {
+    width: 400px;
+    @media     (max-width: 600px) {
+        color: purple;
+        @media (max-width: 500px) {
+            color: orange;
+            @media (min-width: 500px) {
+                color: blue;
+            }
+        }
+    }
+}

@@ -7,7 +7,7 @@ function init() {
         },
         html: "foo bar",
         properties: {
-            gesicht: "fischt"
+            randomProp: "randomVal"
         },
         callbacks: [{
             event: "click",
@@ -38,7 +38,7 @@ function init() {
             color: "green",
             fontWeight: "bold",
             transition: "all 1s",
-            add: {
+            children: {
                 ".bar": {
                     color: "red",
                     transition: "all 1s"
@@ -54,7 +54,11 @@ function init() {
     styleConfig.style.border = "solid 1px black";
     var fooStyle = J.css.getStyle('.foo');
     var fooBarStyle = J.css.getStyle('.foo .bar');
-
+    J.css.getStyle('.foo::before').content = '" foo before content"';
+    J.css.getStyle('.bar::before').content = '" bar before content"';
+    J.css.getStyle('.foo::after').content = '" foo after content"';
+    J.css.getStyle('.bar::after').content = '" bar after content"';
+    var xx = J.css.getStyle('.bar::after') 
     setInterval(function() {
         if(fooStyle.color !== "blue") {
             fooStyle.color = "blue"
@@ -68,9 +72,12 @@ function init() {
         } else {
             fooBarStyle.color = "purple"
         }
-    }, 2000)
+    }, 5000)
     document.body.appendChild(el)
 }
 window.onload = function() {
 init();
+    var currentFooStyle = J.css.getCurrentStyle('.foo');
+    fooStyle.padding
+    fooStyle.margin
 }
