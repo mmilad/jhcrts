@@ -2,15 +2,27 @@
     <head>
         <script src="dist/bundle.js"></script>
         <script>
-            // debugger
-    jhcr.css({
-        body: {
-            backgroundColor: "red"
-        }
-    });
-    var xx = jhcr.css.getStyle('body')
-    xx.backgroundColor = "green"
-    xx.color = "yellow"
+            
+            jhcr.css({
+                body: {
+                    backgroundColor: "red",
+                    color: "green"
+                },
+                ".foo": {
+                    width: "100px",
+                    height: "100px",
+                    border: "1px solid black",
+                    transition: "all 4s"
+                }
+            });
+
+            // var xx = jhcr.css.getStyle('body')
+            // var xy = jhcr.css.compileStyle('body')
+            
+            // xx.backgroundColor = "green"
+            // xx.color = "yellow"
+            // xy.color // get value
+            
         </script>
     </head>
     <body>

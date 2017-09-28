@@ -75,7 +75,7 @@ var fwName = "jhcr";
 var x = new styleManager_1.styleManager();
 // define caller functions
 window[fwName] = {
-    css: x.callAddToStylesInit
+    css: x.init
 };
 // define proto functions
 for (var i in x.protos) {
@@ -97,6 +97,9 @@ var styleManager = /** @class */(function () {
     function styleManager() {
         var _this = this;
         this.protos = {};
+        this.compileStyle = function (config) {
+            return _this.getCurrentStyle(config);
+        };
         this.callAddToStyles = function (parentSelector, config) {
             var that = _this;
             var _loop_1 = function _loop_1(i) {
@@ -109,7 +112,7 @@ var styleManager = /** @class */(function () {
                 _loop_1(i);
             }
         };
-        this.callAddToStylesInit = function (config) {
+        this.init = function (config) {
             _this.callAddToStyles(false, config);
         };
         this.addRule = function (rule) {
@@ -119,29 +122,17 @@ var styleManager = /** @class */(function () {
             if (!_this.STYLE_LIST[style]) _this.addRule(style);
             return _this.STYLE_LIST[style].style;
         };
-        var that = this;
-        this.__proto__.STYLE_ELEMENT = document.createElement('style');
-        this.__proto__.STYLE_ELEMENT.type = "text/css";
+        this.STYLE_ELEMENT = document.createElement('style');
+        this.STYLE_ELEMENT.type = "text/css";
         document.head.appendChild(this.STYLE_ELEMENT);
-        this.__proto__.sheet = document.styleSheets[document.styleSheets.length - 1];
-        this.__proto__.rules = this.sheet.cssRules ? this.sheet.cssRules : this.sheet.rules;
-        this.__proto__.STYLE_LIST = {};
-        that = this;
+        this.sheet = document.styleSheets[document.styleSheets.length - 1];
+        this.rules = this.sheet.cssRules ? this.sheet.cssRules : this.sheet.rules;
+        this.STYLE_LIST = {};
         this.protos = {
             compileStyle: this.compileStyle,
-            callAddToStyles: this.compileStyle,
-            addToStyles: this.addToStyles,
             getStyle: this.getStyle
         };
-        // this.__proto__.compileStyle = this.compileStyle,
-        // this.__proto__.callAddToStyles = this.callAddToStyles,
-        // this.__proto__.addToStyles = this.addToStyles,
-        // this.__proto__.addRule = this.addRule
     }
-    styleManager.prototype.compileStyle = function (config) {
-        this.callAddToStyles(false, config);
-        return config;
-    };
     styleManager.prototype.addToStyles = function (selector, style) {
         if (!this.STYLE_LIST[selector]) {
             this.addRule(selector);

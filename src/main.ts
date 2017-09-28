@@ -6,7 +6,7 @@ var x = new styleManager()
 
 // define caller functions
 window[fwName] = {
-    css: x.callAddToStylesInit
+    css: x.init
 }
 
 // define proto functions

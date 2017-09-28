@@ -7,32 +7,23 @@ export class styleManager {
 
     protos = {}
     constructor () {
-        let that = this
-        this.__proto__.STYLE_ELEMENT = document.createElement('style')
-        this.__proto__.STYLE_ELEMENT.type = "text/css"
+        this.STYLE_ELEMENT = document.createElement('style')
+        this.STYLE_ELEMENT.type = "text/css"
         document.head.appendChild(this.STYLE_ELEMENT)
-        this.__proto__.sheet = document.styleSheets[document.styleSheets.length-1]
-        this.__proto__.rules = this.sheet.cssRules ? this.sheet.cssRules :  this.sheet.rules
-        this.__proto__.STYLE_LIST = {}
-        that = this
+        this.sheet = document.styleSheets[document.styleSheets.length-1]
+        this.rules = this.sheet.cssRules ? this.sheet.cssRules :  this.sheet.rules
+        this.STYLE_LIST = {}
+
         this.protos = {
             compileStyle: this.compileStyle,
-            callAddToStyles: this.compileStyle,
-            addToStyles: this.addToStyles,
             getStyle: this.getStyle
         }
-        // this.__proto__.compileStyle = this.compileStyle,
-        // this.__proto__.callAddToStyles = this.callAddToStyles,
-        // this.__proto__.addToStyles = this.addToStyles,
-        // this.__proto__.addRule = this.addRule
     }
 
 
 
-    compileStyle (config) {
-        this.callAddToStyles(false, config)
-        return config
-    
+    compileStyle = (config) => {
+        return this.getCurrentStyle(config)
     }
 
     callAddToStyles = (parentSelector, config) => {
@@ -44,7 +35,7 @@ export class styleManager {
             });
         }   
     }
-    callAddToStylesInit = (config) => {
+    init = (config) => {
         this.callAddToStyles(false, config)
     }
     addToStyles (selector, style) {
@@ -71,9 +62,7 @@ export class styleManager {
         return document.styleSheets
     }
     getCurrentStyle(style) {
-        
         let a, b, searchingStyles = true, searchingIndex = 0, currentStyleSheet, styleSheets = this.getStyleSheets(), currentStyle = this.getStyle(style)
-
         for( a in styleSheets) {
             currentStyleSheet = styleSheets[a]["cssRules"] ? styleSheets[a]["cssRules"] : styleSheets[a]["rules"]
             for(b in currentStyleSheet) {
