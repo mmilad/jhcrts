@@ -7,11 +7,19 @@
     "test": "test"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0"
   },
   "devDependencies": {
+    "babel": "^5.8.23",
+    "babel-core": "^5.0.0",
+    "babel-loader": "^5.4.2",
+    "babel-preset-es2015-webpack": "^6.4.3",
+    "ts-loader": "^2.3.7",
+    "webpack": "^3.6.0"
   },
   "scripts": {
-    "run": "php -S localhost:8000"
+    "run": "php -S localhost:8000",
+    "webpack": "webpack"
   },
   "repository": {
     "type": "git",
