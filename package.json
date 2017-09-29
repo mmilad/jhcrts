@@ -15,10 +15,12 @@
     "babel-loader": "^5.4.2",
     "babel-preset-es2015-webpack": "^6.4.3",
     "ts-loader": "^2.3.7",
+    "typescript": "^2.5.3",
     "webpack": "^3.6.0"
   },
   "scripts": {
     "run": "php -S localhost:8000",
+    "test": "node test.js > testO.js",
     "webpack": "webpack --optimize-minimize"
   },
   "repository": {

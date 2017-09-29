@@ -1,5 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
+var compileMod = require('./plugin/compileMod')
   // webpack.config.js
   console.log(__dirname)
   module.exports = {
@@ -18,5 +19,8 @@ var path = require('path');
         // note that babel-loader is configured to run after ts-loader
         { test: /\.ts(x?)$/, loader: 'babel-loader!ts-loader', exclude: /node_modules/ }
       ]
-    }
+    },
+    plugins: [
+      new compileMod({options: 'nada'})
+    ]
   }
