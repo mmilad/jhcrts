@@ -1,24 +1,23 @@
 export class styleManager {
-    STYLE_ELEMENT:any 
-    STYLE_LIST:any
-    sheet:any
-    rules:any
-    __proto__:any
+    STYLE_ELEMENT: any
+    STYLE_LIST: any
+    sheet: any;
+    rules: any;
 
-    constructor () {
+    constructor() {
         this.STYLE_ELEMENT = document.createElement('style')
         this.STYLE_ELEMENT.type = "text/css"
         document.head.appendChild(this.STYLE_ELEMENT)
-        this.sheet = document.styleSheets[document.styleSheets.length-1]
-        this.rules = this.sheet.cssRules ? this.sheet.cssRules :  this.sheet.rules
+        this.sheet = document.styleSheets[document.styleSheets.length - 1]
+        this.rules = this.sheet.cssRules ? this.sheet.cssRules : this.sheet.rules
         this.STYLE_LIST = {}
 
-        for(let i in this.protos) {
+        for (let i in this.protos) {
             this.init[i] = this.protos[i]
         }
     }
 
-    init:any = (config?:any) => {
+    init: any = (config?: any) => {
         this.callAddToStyles(false, config)
     }
 
@@ -28,20 +27,20 @@ export class styleManager {
 
     callAddToStyles = (parentSelector, config) => {
         let that = this
-        for(let i in config) {
-            i.split(',').forEach(function(selector) {
-                let newSelector = parentSelector ? (parentSelector + " " +selector).replace(" &", "") : selector
+        for (let i in config) {
+            i.split(',').forEach(function (selector) {
+                let newSelector = parentSelector ? (parentSelector + " " + selector).replace(" &", "") : selector
                 that.addToStyles(newSelector, config[i])
             });
-        }   
+        }
     }
 
-    addToStyles (selector, style) {
-        if(!this.STYLE_LIST[selector]) {
+    addToStyles(selector, style) {
+        if (!this.STYLE_LIST[selector]) {
             this.addRule(selector)
         }
-        for(let s in style) {
-            if(s === "children") {
+        for (let s in style) {
+            if (s === "children") {
                 this.callAddToStyles(selector, style[s])
             } else {
                 this.STYLE_LIST[selector].style[s] = style[s];
@@ -54,22 +53,22 @@ export class styleManager {
     }
 
     getStyle = (style) => {
-        if(!this.STYLE_LIST[style]) this.addRule(style)
+        if (!this.STYLE_LIST[style]) this.addRule(style)
         return this.STYLE_LIST[style].style
     }
 
-    getStyleSheets (){
+    getStyleSheets() {
         return document.styleSheets
     }
 
     getCurrentStyle(style) {
         let a, b, searchingStyles = true, searchingIndex = 0, currentStyleSheet, styleSheets = this.getStyleSheets(), currentStyle = this.getStyle(style)
-        for( a in styleSheets) {
+        for (a in styleSheets) {
             currentStyleSheet = styleSheets[a]["cssRules"] ? styleSheets[a]["cssRules"] : styleSheets[a]["rules"]
-            for(b in currentStyleSheet) {
-                if(currentStyleSheet[b].selectorText === style) {
-                    while(searchingStyles) {
-                        if(currentStyleSheet[b].style[searchingIndex]) {
+            for (b in currentStyleSheet) {
+                if (currentStyleSheet[b].selectorText === style) {
+                    while (searchingStyles) {
+                        if (currentStyleSheet[b].style[searchingIndex]) {
                             currentStyle[currentStyleSheet[b].style[searchingIndex]] = currentStyleSheet[b].style[currentStyleSheet[b].style[searchingIndex]]
                             searchingIndex++
                         } else {
@@ -84,7 +83,7 @@ export class styleManager {
         }
         return currentStyle
     }
-    
+
     protos = {
         compileStyle: this.compileStyle,
         getStyle: this.getStyle

@@ -19,7 +19,7 @@
   },
   "scripts": {
     "run": "php -S localhost:8000",
-    "webpack": "webpack"
+    "webpack": "webpack --optimize-minimize"
   },
   "repository": {
     "type": "git",
