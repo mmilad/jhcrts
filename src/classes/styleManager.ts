@@ -18,11 +18,7 @@ export class styleManager {
     }
 
     init: any = (config?: any) => {
-        this.callAddToStyles(false, config)
-    }
-
-    compileStyle = (config) => {
-        return this.getCurrentStyle(config)
+        return this.callAddToStyles(false, config)
     }
 
     callAddToStyles = (parentSelector, config) => {
@@ -33,6 +29,7 @@ export class styleManager {
                 that.addToStyles(newSelector, config[i])
             });
         }
+        return config
     }
 
     addToStyles(selector, style) {
@@ -46,7 +43,7 @@ export class styleManager {
                 this.STYLE_LIST[selector].style[s] = style[s];
             }
         }
-        style.__proto__.style = this.STYLE_LIST[selector].style;
+        style.style = this.STYLE_LIST[selector].style;
     }
     addRule = (rule) => {
         this.STYLE_LIST[rule] = this.rules[this.sheet.insertRule(rule + '{}', this.rules.length)]
@@ -61,7 +58,7 @@ export class styleManager {
         return document.styleSheets
     }
 
-    getCurrentStyle(style) {
+    getCurrentStyle = (style) => {
         let a, b, searchingStyles = true, searchingIndex = 0, currentStyleSheet, styleSheets = this.getStyleSheets(), currentStyle = this.getStyle(style)
         for (a in styleSheets) {
             currentStyleSheet = styleSheets[a]["cssRules"] ? styleSheets[a]["cssRules"] : styleSheets[a]["rules"]
@@ -85,7 +82,7 @@ export class styleManager {
     }
 
     protos = {
-        compileStyle: this.compileStyle,
+        getCurrentStyle: this.getCurrentStyle,
         getStyle: this.getStyle
     }
 }
