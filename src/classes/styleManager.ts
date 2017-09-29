@@ -19,8 +19,10 @@ export class styleManager {
             getStyle: this.getStyle
         }
     }
-
-
+    
+    init = (config) => {
+        this.callAddToStyles(false, config)
+    }
 
     compileStyle = (config) => {
         return this.getCurrentStyle(config)
@@ -35,9 +37,7 @@ export class styleManager {
             });
         }   
     }
-    init = (config) => {
-        this.callAddToStyles(false, config)
-    }
+
     addToStyles (selector, style) {
         if(!this.STYLE_LIST[selector]) {
             this.addRule(selector)
@@ -54,13 +54,16 @@ export class styleManager {
     addRule = (rule) => {
         this.STYLE_LIST[rule] = this.rules[this.sheet.insertRule(rule + '{}', this.rules.length)]
     }
+
     getStyle = (style) => {
         if(!this.STYLE_LIST[style]) this.addRule(style)
         return this.STYLE_LIST[style].style
     }
+
     getStyleSheets (){
         return document.styleSheets
     }
+
     getCurrentStyle(style) {
         let a, b, searchingStyles = true, searchingIndex = 0, currentStyleSheet, styleSheets = this.getStyleSheets(), currentStyle = this.getStyle(style)
         for( a in styleSheets) {
@@ -83,4 +86,5 @@ export class styleManager {
         }
         return currentStyle
     }
+    
 }
