@@ -3,19 +3,41 @@
         <script src="dist/bundle.js"></script>
         <script>
             
-            jhcr.css({
-                body: {
-                    backgroundColor: "red",
-                    color: "green"
-                },
-                ".foo": {
-                    width: "100px",
-                    height: "100px",
-                    border: "1px solid black",
-                    transition: "all 4s"
+            // jhcr.css({
+            //     body: {
+            //         backgroundColor: "red",
+            //         color: "green"
+            //     },
+            //     ".foo": {
+            //         width: "100px",
+            //         height: "100px",
+            //         border: "1px solid black",
+            //         transition: "all 4s"
+            //     }
+            // });
+            var x = jhcr.css.getStyle(".foo")
+            jhcr.html.register({
+                "foo-elem": {
+                    onSet: function(e) {
+                        console.log(this, e)
+                    }
                 }
-            });
-            
+            })
+            var a = jhcr.data()
+            a.set= {
+                a:"ad",
+                b:"dddd"
+            }
+            var b = a.a.onSet.push(function(e){
+                console.log(e,"asd")
+            })
+            var c = a.a.onSet.push(function(e, key){
+                console.log(e,"asd", key)
+            })
+            a.a = {
+                x:"aadd",
+                y:"gfdg"
+            }
         </script>
     </head>
     <body>
@@ -23,5 +45,6 @@
         hello world
         <div class="foo"></div>
         <div class="bar"></div>
+        <foo-elem></foo-elem>
     </body>
 </html>

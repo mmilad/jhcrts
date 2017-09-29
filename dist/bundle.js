@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -70,21 +70,103 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var styleManager_1 = __webpack_require__(1);
-var fwName = "jhcr";
-var x = new styleManager_1.styleManager();
-// define caller functions
-window[fwName] = {
-    css: x.init
-};
-// define proto functions
-for (var i in x.protos) {
-    window[fwName].css.__proto__[i] = x.protos[i];
-}
-// new styleManager()
-// styleManager.length
-// for(let i in styleManager.protoFunction)
-// window[fwName].css.__proto__
+var helper_1 = __webpack_require__(4);
+var dataManager = /** @class */(function () {
+    function dataManager() {
+        var _this = this;
+        this.init = function () {
+            return _this.dataObject();
+        };
+        this.dataObject = function () {
+            var killed = false,
+                customObject = function customObject() {
+                var db = Object.create({}),
+                    sets = [];
+                db.__proto__.onSet = _this.sets();
+                Object.defineProperty(db.__proto__, "set", {
+                    get: function get() {
+                        return sets;
+                    },
+                    set: function set(e) {
+                        if (typeof e === "string") {
+                            sets.push(e);
+                            configProp(db, e, "");
+                        } else if (typeof e === "object") {
+                            for (var i in e) {
+                                sets.push(i);
+                                configProp(db, i, e[i]);
+                            }
+                        }
+                    }
+                });
+                return db;
+            },
+                configProp = function configProp(obj, prop, value) {
+                var i,
+                    db = customObject();
+                if (!obj.__proto__[prop]) {
+                    Object.defineProperty(obj.__proto__, prop, {
+                        get: function get() {
+                            return db;
+                        },
+                        set: function set(e) {
+                            if (!killed) {
+                                killed = true;
+                                for (i in db.set) {
+                                    killData(db, db.set[i]);
+                                }
+                                killed = false;
+                            }
+                            db.onSet.forEach(function (cb, key) {
+                                cb({
+                                    oldValue: db.__proto__.value,
+                                    value: e
+                                }, key);
+                            });
+                            db.__proto__.value = e;
+                            if (typeof e === "object") {
+                                for (i in e) {
+                                    if (!db[i]) {
+                                        db.set = i;
+                                    }
+                                    db[i] = e[i];
+                                }
+                            }
+                        }
+                    });
+                }
+                obj[prop] = value;
+            },
+                killData = function killData(obj, data) {
+                var i;
+                obj[data] = "";
+                for (i in obj[data].set) {
+                    killData(obj[data], obj[data].set[i]);
+                }
+            };
+            return customObject();
+        };
+        this.guid = new helper_1.helper().guid;
+    }
+    dataManager.prototype.sets = function () {
+        var _this = this;
+        var set = Object.create({});
+        set.__proto__.push = function (f) {
+            var guid = _this.guid();
+            set[guid] = f;
+            return guid;
+        };
+        set.__proto__.forEach = function (cb) {
+            var keys = Object.keys(set);
+            keys.forEach(function (key) {
+                cb(set[key], key);
+            });
+        };
+        return set;
+    };
+    return dataManager;
+})();
+exports.dataManager = dataManager;
 
 /***/ }),
 /* 1 */
@@ -93,10 +175,42 @@ for (var i in x.protos) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var styleManager_1 = __webpack_require__(2);
+var elementManager_1 = __webpack_require__(3);
+var dataManager_1 = __webpack_require__(0);
+var fwName = "jhcr";
+// define caller functions
+window[fwName] = {
+    css: new styleManager_1.styleManager().init,
+    html: new elementManager_1.elementManager().init,
+    data: new dataManager_1.dataManager().init
+};
+// define proto functions
+// for(let i in x.protos) {
+//     window[fwName].css.__proto__[i] = x.protos[i]
+// }
+// for(let i in y.protos) {
+//     debugger
+//     window[fwName].html.__proto__[i] = y.protos[i]
+// }
+// new styleManager()
+// styleManager.length
+// for(let i in styleManager.protoFunction)
+// window[fwName].css.__proto__
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
 var styleManager = /** @class */(function () {
     function styleManager() {
         var _this = this;
-        this.protos = {};
+        this.init = function (config) {
+            _this.callAddToStyles(false, config);
+        };
         this.compileStyle = function (config) {
             return _this.getCurrentStyle(config);
         };
@@ -112,9 +226,6 @@ var styleManager = /** @class */(function () {
                 _loop_1(i);
             }
         };
-        this.init = function (config) {
-            _this.callAddToStyles(false, config);
-        };
         this.addRule = function (rule) {
             _this.STYLE_LIST[rule] = _this.rules[_this.sheet.insertRule(rule + '{}', _this.rules.length)];
         };
@@ -122,16 +233,19 @@ var styleManager = /** @class */(function () {
             if (!_this.STYLE_LIST[style]) _this.addRule(style);
             return _this.STYLE_LIST[style].style;
         };
+        this.protos = {
+            compileStyle: this.compileStyle,
+            getStyle: this.getStyle
+        };
         this.STYLE_ELEMENT = document.createElement('style');
         this.STYLE_ELEMENT.type = "text/css";
         document.head.appendChild(this.STYLE_ELEMENT);
         this.sheet = document.styleSheets[document.styleSheets.length - 1];
         this.rules = this.sheet.cssRules ? this.sheet.cssRules : this.sheet.rules;
         this.STYLE_LIST = {};
-        this.protos = {
-            compileStyle: this.compileStyle,
-            getStyle: this.getStyle
-        };
+        for (var i in this.protos) {
+            this.init[i] = this.protos[i];
+        }
     }
     styleManager.prototype.addToStyles = function (selector, style) {
         if (!this.STYLE_LIST[selector]) {
@@ -180,6 +294,159 @@ var styleManager = /** @class */(function () {
     return styleManager;
 })();
 exports.styleManager = styleManager;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var dataManager_1 = __webpack_require__(0);
+var elementManager = /** @class */(function () {
+    function elementManager() {
+        var _this = this;
+        this.types = {};
+        this.registry = {};
+        this.init = function (config) {
+            if (typeof config === "string") {
+                config = { tag: config };
+            }
+            if (config.types) {
+                config.types.forEach(function (t) {
+                    for (var i in this.types[t]) {
+                        config[i] = this.types[t][i];
+                    }
+                });
+            }
+            if (config.type) {
+                for (var i in config.types[config.type]) {
+                    if (!config[i]) config[i] = config.types[config.type][i];
+                }
+            }
+            config.tag = !config.tag ? 'div' : config.tag;
+            _this.element = config.element = document.createElement(config.tag);
+            !config.value ? false : _this.element.value = config.value;
+            !config.html ? false : _this.element.innerHTML = config.html;
+            !config["class"] ? false : _this.element.className = config["class"];
+            for (var i in config) {
+                if (_this.render[i]) _this.render[i](config[i]);
+            }
+            return _this.element;
+        };
+        this.watchElements = function (dm) {
+            var that = _this,
+                JHCRdocObserver = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    for (var i in mutation.addedNodes) {
+                        if (that.registry[mutation.addedNodes[i].localName] && that.registry[mutation.addedNodes[i].localName].onSet) {
+                            if (that.registry[mutation.addedNodes[i].localName].data) {
+                                var db = dm.init();
+                                db.set = "data";
+                                Object.defineProperty(mutation.addedNodes[i], "data", {
+                                    get: function get() {
+                                        return db.data;
+                                    },
+                                    set: function set(e) {
+                                        db.data = e;
+                                    }
+                                });
+                            }
+                            mutation.addedNodes[i].find = mutation.addedNodes[i].querySelectorAll;
+                            mutation.addedNodes[i].f = mutation.addedNodes[i].querySelectorAll;
+                            that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
+                        }
+                    }
+                    for (var i in mutation.removedNodes) {
+                        if (that.registry[mutation.removedNodes[i].localName] && that.registry[mutation.removedNodes[i].localName].onRemove) {
+                            that.registry[mutation.removedNodes[i].localName].onRemove(mutation.removedNodes[i]);
+                        }
+                    }
+                });
+            });
+            JHCRdocObserver.observe(document, { childList: true, subtree: true });
+        };
+        this.render = {
+            attributes: function attributes(config) {
+                for (var i in config) {
+                    _this.element.setAttribute(i, config[i]);
+                }
+            },
+            properties: function properties(config) {
+                for (var i in config) {
+                    _this.element[i] = config[i];
+                }
+            },
+            children: function children(config) {
+                config.forEach(function (i) {
+                    this.element.appendChild(this.init(i));
+                });
+            },
+            callbacks: function callbacks(config) {
+                config.forEach(function (i) {
+                    this.element.addEventListener(i.event, i.callback);
+                });
+            },
+            bind: function bind(config) {
+                function setVals(config) {
+                    var _this = this;
+                    config.binds.forEach(function (i) {
+                        if (i.property) {
+                            _this.element[i.property] = config.i.data.value;
+                        }
+                        if (i.attribute) {
+                            _this.element.setAttribute(i.attribute, i.data.value);
+                        }
+                        if (i.callback) {
+                            i.callback(i.data.value);
+                        }
+                    });
+                }
+                setVals(config);
+                config.data.onSet.push(function (e) {
+                    setVals(config);
+                });
+            }
+        };
+        this.protos = {
+            register: function register(config) {
+                for (var i in config) {
+                    _this.registry[i] = config[i];
+                }
+            },
+            addType: function addType(config) {
+                for (var t in config) {
+                    _this.types[t] = config[t];
+                }
+            }
+        };
+        this.watchElements(new dataManager_1.dataManager());
+        for (var i in this.protos) {
+            this.init[i] = this.protos[i];
+        }
+    }
+    return elementManager;
+})();
+exports.elementManager = elementManager;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var helper = /** @class */(function () {
+    function helper() {}
+    helper.prototype.guid = function () {
+        var s4 = function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+        };
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    };
+    return helper;
+})();
+exports.helper = helper;
 
 /***/ })
 /******/ ]);

@@ -5,7 +5,6 @@ export class styleManager {
     rules:any
     __proto__:any
 
-    protos = {}
     constructor () {
         this.STYLE_ELEMENT = document.createElement('style')
         this.STYLE_ELEMENT.type = "text/css"
@@ -14,13 +13,12 @@ export class styleManager {
         this.rules = this.sheet.cssRules ? this.sheet.cssRules :  this.sheet.rules
         this.STYLE_LIST = {}
 
-        this.protos = {
-            compileStyle: this.compileStyle,
-            getStyle: this.getStyle
+        for(let i in this.protos) {
+            this.init[i] = this.protos[i]
         }
     }
-    
-    init = (config) => {
+
+    init:any = (config?:any) => {
         this.callAddToStyles(false, config)
     }
 
@@ -87,4 +85,8 @@ export class styleManager {
         return currentStyle
     }
     
+    protos = {
+        compileStyle: this.compileStyle,
+        getStyle: this.getStyle
+    }
 }
