@@ -10,7 +10,7 @@
         </style>
         <script>
 
-            jhcr.html.register({"test-component":{"tpl":{"children":[{"attributes":{"title":"hmm","propDop":"asdasd"},"children":[{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"asdasd}"}],"tag":"p"},{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"hello world"}],"tag":"p"}],"tag":"aaaa"}]},"data":{"person":{"name":"milad","alter":"30"}}}});
+            jhcr.html.register({"test-component":{"tpl":{"children":[{"attributes":{"title":"hmm","propDop":"asdasd"},"children":[{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"asdasd}"}],"tag":"p"},{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"hello\n world"}],"tag":"pre"}],"tag":"aaaa"}]},"data":{"person":{"name":"milad","alter":"30"}}}});
             jhcr.html.register({
                 foo: {
                     onSet: function(e) {
@@ -29,11 +29,7 @@
     array = string.split(/\s*(\{\{[^}]+}})\s*/).filter(Boolean);
     
 console.log(array);
-var str = "hello {{salutation}} {{ name }} we are glad to tell you {{ message }}";
 
-var res = str.match(/[{]+[^}]+[}]+|[\w\s]+/g).filter(Boolean);;
-
-console.log(res);
         </script>
 
     </head>

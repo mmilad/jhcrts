@@ -1,7 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
   // webpack.config.js
-  console.log(__dirname)
   module.exports = {
     context: __dirname + "/src/",
     entry: __dirname + "/src/main.ts",
@@ -11,7 +10,7 @@ var path = require('path');
     },
     target: 'node',
     resolve: {
-      extensions: [ ".tsx", ".ts", ".js" ]
+      extensions: [".ts"]
     },
     module: {
       loaders: [
