@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <script src="./dist/bundle.js"></script>
+        <style>
+            body {
+                border: 1px solid black;
+            }
+        </style>
+        <script>
+
+            jhcr.html.register({"test-component":{"tpl":{"children":[{"attributes":{"title":"hmm","propDop":"asdasd"},"children":[{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"asdasd}"}],"tag":"p"},{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"hello world"}],"tag":"p"}],"tag":"aaaa"}]},"data":{"person":{"name":"milad","alter":"30"}}}});
+            jhcr.html.register({
+                foo: {
+                    onSet: function(e) {
+                        console.log(e)
+                    }
+                }
+            });
+            var re = /{{(.*?)}}/g;
+            var ee = /}}(.*){{/;
+            str = "{{ yo }} my name is {{helloworld}}"
+            var y = str.match(ee)
+            var m = str.match(re);
+            console.log(m)
+            console.log(y)
+            var string = 'hello {{salutation}} {{ name }} we are glad to tell you {{ message }}',
+    array = string.split(/\s*(\{\{[^}]+}})\s*/).filter(Boolean);
+    
+console.log(array);
+var str = "hello {{salutation}} {{ name }} we are glad to tell you {{ message }}";
+
+var res = str.match(/[{]+[^}]+[}]+|[\w\s]+/g).filter(Boolean);;
+
+console.log(res);
+        </script>
+
+    </head>
+    <body>
+        
+        hello world
+        <div class="foo">
+            <div class="bar"></div>
+        </div>
+        <foo-elem></foo-elem>
+        foo
+        <test-component></test-component>
+    </body>
+</html>

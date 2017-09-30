@@ -7,7 +7,6 @@ export class elementManager {
     registry = {}
 
     constructor() {
-        this.watchElements(new dataManager())
         for(let i in this.protos) {
             this.init[i] = this.protos[i]
         }
@@ -32,26 +31,27 @@ export class elementManager {
         }
 
         config.tag = !config.tag ? 'div' : config.tag
-        this.element = config.element = document.createElement(config.tag)
-        !config.value ? false : this.element.value = config.value
-        !config.html ? false : this.element.innerHTML = config.html
-        !config.class ? false : this.element.className = config.class
+        var element = config.element = document.createElement(config.tag) 
+        !config.value ? false : element.value = config.value
+        !config.html ? false : element.innerHTML = config.html
+        !config.class ? false : element.className = config.class
 
         for(let i in config) {
-            if(this.render[i]) this.render[i](config[i])
+            if(this.render[i]) this.render[i](config[i], element)
         }
 
-        return this.element
+        return element
     }
-    watchElements = (dm) => {
-        
+    watchElements = () => {
+        var dm = new dataManager()
         let that = this, JHCRdocObserver = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation:any) {
                 for(var i in mutation.addedNodes) {
-                    if(that.registry[mutation.addedNodes[i].localName] && that.registry[mutation.addedNodes[i].localName].onSet) {
+                    if(that.registry[mutation.addedNodes[i].localName]) {
                         if(that.registry[mutation.addedNodes[i].localName].data) {
                             var db = dm.init();
                             db.set="data";
+                            db.data = that.registry[mutation.addedNodes[i].localName].data
                             Object.defineProperty(mutation.addedNodes[i], "data", {
                                 get() {
                                     return db.data;
@@ -61,9 +61,12 @@ export class elementManager {
                                 }
                             });
                         }
-                        mutation.addedNodes[i].find = mutation.addedNodes[i].querySelectorAll;
-                        mutation.addedNodes[i].f = mutation.addedNodes[i].querySelectorAll;
-                        that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
+                        var tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl)
+                        mutation.addedNodes[i].replaceWith(tplElement)
+                        mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelectorAll;
+                        if(that.registry[mutation.addedNodes[i].localName].onSet) {
+                            that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
+                        }
                     }
                 }
                 for(var i in mutation.removedNodes) {
@@ -76,34 +79,51 @@ export class elementManager {
         JHCRdocObserver.observe(document, { childList:true, subtree:true});
     }
     render = {
-        attributes: (config) => {
+        attributes: (config, elem) => {
             for(let i in config) {
-                this.element.setAttribute(i, config[i])
+                elem.setAttribute(i, config[i])
             }
         },
-        properties: (config) => {
+        properties: (config, elem) => {
+            let that = this
             for(let i in config) {
-                this.element[i] = config[i]
+                elem[i] = config[i]
             }
         },
-        children: (config) => {
+        children: (config, elem) => {
+            let that = this
             config.forEach(function(i){
-                this.element.appendChild(this.init(i))
+
+                if(i.tag === "textNode") {
+                    var content = i.html.split(" ")
+                    content.forEach(item => {
+                        let str = document.createTextNode(item)
+                        if(str.nodeValue =="world") {
+                            setTimeout(function() {
+                                str.nodeValue = " milad"
+                            }, 4000)
+                        }
+                        elem.appendChild(str)
+                    })
+                } else {
+                    elem.appendChild(that.init(i))
+                }
             })
         },
-        callbacks: (config) => {
+        callbacks: (config, elem) => {
+            let that = this
             config.forEach(function(i){
-                this.element.addEventListener(i.event, i.callback)
+                elem.addEventListener(i.event, i.callback)
             })
         },
-        bind: (config) => {
+        bind: (config, elem) => {
             function setVals(config) {
                 config.binds.forEach((i) => {
                     if(i.property) {
-                        this.element[i.property] = config.i.data.value
+                        elem[i.property] = config.i.data.value
                     }
                     if(i.attribute) {
-                        this.element.setAttribute(i.attribute, i.data.value)
+                        elem.setAttribute(i.attribute, i.data.value)
                     }
                     if(i.callback) {
                         i.callback(i.data.value)

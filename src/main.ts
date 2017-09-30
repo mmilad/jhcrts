@@ -7,15 +7,15 @@ import { dataManager } from "./classes/dataManager"
 
 
 
-var fwName = "jhcr"
-
+var fwName = "jhcr",
+    em = new elementManager()
 // define caller functions
 window[fwName] = {
     css: new styleManager().init,
-    html: new elementManager().init,
+    html: em.init,
     data: new dataManager().init
 }
-
+em.watchElements()
 // define proto functions
 // for(let i in x.protos) {
 //     window[fwName].css.__proto__[i] = x.protos[i]
