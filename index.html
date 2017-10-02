@@ -10,7 +10,7 @@
         </style>
         <script>
 
-            jhcr.html.register({"test-component":{"tpl":{"children":[{"attributes":{"title":"hmm","propDop":"asdasd"},"children":[{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"asdasd}"}],"tag":"p"},{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"hello\n world"}],"tag":"pre"}],"tag":"aaaa"}]},"data":{"person":{"name":"milad","alter":"30"}}}});
+            jhcr.html.register({"test-component":{"tpl":{"children":[{"attributes":{"id":"test","title":"hmm","propDop":"asdasd"},"children":[{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"{{person.name   }} {t}ist {{person.alter}} jahre alt"}],"tag":"p"}],"tag":"div"}]},"data":{"person":{"name":"milad","alter":"30"}}}});
             jhcr.html.register({
                 foo: {
                     onSet: function(e) {
@@ -18,18 +18,49 @@
                     }
                 }
             });
-            var re = /{{(.*?)}}/g;
-            var ee = /}}(.*){{/;
-            str = "{{ yo }} my name is {{helloworld}}"
-            var y = str.match(ee)
-            var m = str.match(re);
-            console.log(m)
-            console.log(y)
-            var string = 'hello {{salutation}} {{ name }} we are glad to tell you {{ message }}',
-    array = string.split(/\s*(\{\{[^}]+}})\s*/).filter(Boolean);
+//             var re = /{{(.*?)}}/g;
+//             var ee = /}}(.*){{/;
+//             str = "{{ yo }} my name is {{helloworld}}"
+//             var y = str.match(/{{(.*?)}}/)
+//             var m = str.match(re);
+//             console.log(m)
+//             console.log(y)
+//             var string = 'hello {{salutation}} {{ name }} we are glad to tell you {{ message }}',
+//     array = string.split(/\s*(\{\{[^}]+}})\s*/).filter(Boolean);
     
-console.log(array);
-
+// console.log(array);
+    jhcr.html.register({
+        foox: {
+            data: {
+                foo: {
+                    bar : "bar in foo"
+                }
+            },
+            tpl: {
+                binds:[
+                    {
+                        property: "innerHTML",
+                        data: "foo.bar"
+                    }
+                ]
+            }
+        }
+    })
+    window.onload = function() {
+        var elem = document.querySelector('test-component')
+        // elem.data.person.name = "Meister Milad"
+        elem.data.person = {
+            name: "Dev Milad",
+            alter: "bald 31"
+        } 
+        var x = document.createComment("hello world")
+        document.body.appendChild(x)
+        debugger
+        var div = document.createElement('div')
+        x.replaceWith(div)
+        debugger
+        div.replaceWith(x)
+    }
         </script>
 
     </head>
@@ -40,7 +71,7 @@ console.log(array);
             <div class="bar"></div>
         </div>
         <foo-elem></foo-elem>
-        foo
+        <foox></foox>
         <test-component></test-component>
     </body>
 </html>

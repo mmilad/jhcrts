@@ -15,7 +15,7 @@ var path = require('path');
     module: {
       loaders: [
         // note that babel-loader is configured to run after ts-loader
-        { test: /\.ts(x?)$/, loader: 'babel-loader!ts-loader', exclude: /node_modules/ }
+        { test: /\.ts$/, loader: 'ts-loader', exclude: /node_modules/ }
       ]
     }
   }

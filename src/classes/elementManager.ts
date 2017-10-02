@@ -12,8 +12,7 @@ export class elementManager {
         }
     }
 
-    init = (config:any) => {
-
+    init = (config:any, data?) => {
         if(typeof config === "string") {config={tag:config}}
 
         if(config.types) {
@@ -31,13 +30,14 @@ export class elementManager {
         }
 
         config.tag = !config.tag ? 'div' : config.tag
-        var element = config.element = document.createElement(config.tag) 
+        var element = config.element ? config.element : document.createElement(config.tag)
+        element.data = data 
         !config.value ? false : element.value = config.value
         !config.html ? false : element.innerHTML = config.html
         !config.class ? false : element.className = config.class
 
         for(let i in config) {
-            if(this.render[i]) this.render[i](config[i], element)
+            if(this.render[i]) this.render[i](config[i], element, data)
         }
 
         return element
@@ -61,8 +61,9 @@ export class elementManager {
                                 }
                             });
                         }
-                        var tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl)
-                        mutation.addedNodes[i].replaceWith(tplElement)
+                        var tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl, mutation.addedNodes[i].data)
+                        mutation.addedNodes[i].innerHTML = ""
+                        mutation.addedNodes[i].appendChild(tplElement)
                         mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelectorAll;
                         if(that.registry[mutation.addedNodes[i].localName].onSet) {
                             that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
@@ -78,6 +79,11 @@ export class elementManager {
         });
         JHCRdocObserver.observe(document, { childList:true, subtree:true});
     }
+    getValueOf = (path, obj) => {
+        return path.split('.').reduce(function(prev, curr) {
+            return prev ? prev[curr] : undefined
+        }, obj || self)
+    }
     render = {
         attributes: (config, elem) => {
             for(let i in config) {
@@ -90,23 +96,28 @@ export class elementManager {
                 elem[i] = config[i]
             }
         },
-        children: (config, elem) => {
+        children: (config, elem, dataModel) => {
             let that = this
             config.forEach(function(i){
 
                 if(i.tag === "textNode") {
-                    var content = i.html.split(" ")
-                    content.forEach(item => {
-                        let str = document.createTextNode(item)
-                        if(str.nodeValue =="world") {
-                            setTimeout(function() {
-                                str.nodeValue = " milad"
-                            }, 4000)
+                    var content = i.html.split(/\s*(\{\{[^}]+}})\s*/).filter(Boolean);
+                    content.forEach((item, index) => {
+                        let str
+                        if(item.match(/{{(.*?)}}/)) {
+                            str = item.replace(/{{|}}|\s/g, "")
+                            let selectedData = that.getValueOf(str, dataModel)
+                            str = document.createTextNode(selectedData.value)
+                            selectedData.onSet.push(v => {str.nodeValue = v.value})
+                            
+                        } else {
+                            str = document.createTextNode(item)
                         }
+                        if(index !== content.length) str.nodeValue += " " 
                         elem.appendChild(str)
                     })
                 } else {
-                    elem.appendChild(that.init(i))
+                    elem.appendChild(that.init(i, dataModel))
                 }
             })
         },
@@ -116,24 +127,29 @@ export class elementManager {
                 elem.addEventListener(i.event, i.callback)
             })
         },
-        bind: (config, elem) => {
+        binds: (config, elem) => {
+            let that = this
             function setVals(config) {
-                config.binds.forEach((i) => {
+                config.forEach((i) => {
+                   let data = that.getValueOf(i.data, elem.data)
                     if(i.property) {
-                        elem[i.property] = config.i.data.value
+                        elem[i.property] = data.value
+                        data.onSet.push((d) => elem[i.property = d.value])
                     }
                     if(i.attribute) {
-                        elem.setAttribute(i.attribute, i.data.value)
+                        elem.setAttribute(i.attribute, that.getValueOf(config.data, elem.data))
+                        data.onSet.push((d) => elem.setAttribute(i.attribute, d.value))
                     }
                     if(i.callback) {
                         i.callback(i.data.value)
+                        data.onSet.push(i.callback)
                     }
                 })
             }
             setVals(config)
-            config.data.onSet.push(function(e){
-                setVals(config)
-            })
+            // config.data.onSet.push(function(e){
+            //     setVals(config)
+            // })
         }
     }
 
