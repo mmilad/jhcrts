@@ -6,7 +6,7 @@ var path = require('path');
     entry: __dirname + "/src/main.ts",
     output: {
         path: __dirname + "/dist",
-        filename: "bundle.js",
+        filename: "jhcr.js",
     },
     target: 'node',
     resolve: {
@@ -17,5 +17,6 @@ var path = require('path');
         // note that babel-loader is configured to run after ts-loader
         { test: /\.ts$/, loader: 'ts-loader', exclude: /node_modules/ }
       ]
-    }
+    },
+    watch: true
   }

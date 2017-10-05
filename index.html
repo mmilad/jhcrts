@@ -2,50 +2,104 @@
     <head>
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta content="utf-8" http-equiv="encoding">
-        <script src="./dist/bundle.js"></script>
+        <script src="./dist/jhcr.js"></script>
         <style>
             body {
                 border: 1px solid black;
             }
         </style>
         <script>
-
-            jhcr.html.register({"test-component":{"tpl":{"children":[{"attributes":{"id":"test","title":"hmm","propDop":"asdasd"},"children":[{"attributes":{},"children":[{"attributes":{},"children":[],"tag":"textNode","html":"{{person.name   }} {t}ist {{person.alter}} jahre alt"}],"tag":"p"}],"tag":"div"}]},"data":{"person":{"name":"milad","alter":"30"}}}});
-            jhcr.html.register({
-                foo: {
-                    onSet: function(e) {
-                        console.log(e)
+jhcr.html.register({
+    "test-component": {
+        "data": {
+            "person": {
+                "name": "milad",
+                "alter": "30",
+                "skills": {
+                    "skill": "php",
+                    "level": "3"
+                }
+            }
+        },
+        "tpl": {
+            "children": [
+                {
+                    "attributes": {
+                        "title": "hmm",
+                        "propDop": "asdasd"
+                    },
+                    "children": [
+                        {
+                            "attributes": {},
+                            "children": [
+                                {
+                                    "tag": "textNode",
+                                    "binds": [
+                                        {
+                                            "property": "nodeValue",
+                                            "data": "person.name"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "tag": "textNode",
+                                    "properties": {
+                                        "nodeValue": " ist "
+                                    }
+                                },
+                                {
+                                    "tag": "textNode",
+                                    "binds": [
+                                        {
+                                            "property": "nodeValue",
+                                            "data": "person.alter"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "tag": "textNode",
+                                    "properties": {
+                                        "nodeValue": " jahre alt"
+                                    }
+                                }
+                            ],
+                            "tag": "p"
+                        }
+                    ],
+                    "tag": "div"
+                }
+            ]
+        },
+        "interface": {
+            "person": {
+                "type": "array",
+                "item": {
+                    "name": {
+                        "type": "string",
+                        "item": ""
+                    },
+                    "alter": {
+                        "type": "string",
+                        "item": ""
+                    },
+                    "skills": {
+                        "type": "array",
+                        "item": {
+                            "skill": {
+                                "type": "string",
+                                "item": ""
+                            },
+                            "level": {
+                                "type": "string",
+                                "item": ""
+                            }
+                        }
                     }
                 }
-            });
-//             var re = /{{(.*?)}}/g;
-//             var ee = /}}(.*){{/;
-//             str = "{{ yo }} my name is {{helloworld}}"
-//             var y = str.match(/{{(.*?)}}/)
-//             var m = str.match(re);
-//             console.log(m)
-//             console.log(y)
-//             var string = 'hello {{salutation}} {{ name }} we are glad to tell you {{ message }}',
-//     array = string.split(/\s*(\{\{[^}]+}})\s*/).filter(Boolean);
-    
-// console.log(array);
-    jhcr.html.register({
-        foox: {
-            data: {
-                foo: {
-                    bar : "bar in foo"
-                }
-            },
-            tpl: {
-                binds:[
-                    {
-                        property: "innerHTML",
-                        data: "foo.bar"
-                    }
-                ]
             }
         }
-    })
+    }
+})
     window.onload = function() {
         var elem = document.querySelector('test-component')
         // elem.data.person.name = "Meister Milad"
@@ -55,10 +109,10 @@
         } 
         var x = document.createComment("hello world")
         document.body.appendChild(x)
-        debugger
+        // debugger
         var div = document.createElement('div')
         x.replaceWith(div)
-        debugger
+        // debugger
         div.replaceWith(x)
     }
         </script>
@@ -72,6 +126,16 @@
         </div>
         <foo-elem></foo-elem>
         <foox></foox>
-        <test-component></test-component>
+        <test-component>
+            <set-data>
+                <person>
+                    <name>meister milad</name>
+                    <!-- <skills>
+                        <skill>php</skill>
+                        <level>3</level>
+                    </skills> -->
+                </person>
+            </set-data>
+        </test-component>
     </body>
 </html>

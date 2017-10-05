@@ -304,6 +304,7 @@ var elementManager = /** @class */ (function () {
         this.types = {};
         this.registry = {};
         this.init = function (config, data) {
+            var element;
             if (typeof config === "string") {
                 config = { tag: config };
             }
@@ -321,8 +322,12 @@ var elementManager = /** @class */ (function () {
                 }
             }
             config.tag = !config.tag ? 'div' : config.tag;
-            var element = config.element ? config.element : document.createElement(config.tag);
-            element.data = data;
+            if (config.tag === "textNode") {
+                element = document.createTextNode('');
+            }
+            else {
+                element = config.element ? config.element : document.createElement(config.tag);
+            }
             !config.value ? false : element.value = config.value;
             !config.html ? false : element.innerHTML = config.html;
             !config.class ? false : element.className = config.class;
@@ -351,23 +356,120 @@ var elementManager = /** @class */ (function () {
                                     }
                                 });
                             }
+                            mutation.addedNodes[i].fa = mutation.addedNodes[i].findAll = mutation.addedNodes[i].querySelectorAll;
+                            mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelector;
                             var tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl, mutation.addedNodes[i].data);
-                            mutation.addedNodes[i].innerHTML = "";
+                            var x = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface);
+                            console.log(x);
                             mutation.addedNodes[i].appendChild(tplElement);
-                            mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelectorAll;
                             if (that.registry[mutation.addedNodes[i].localName].onSet) {
                                 that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
                             }
                         }
                     }
-                    for (var i in mutation.removedNodes) {
-                        if (that.registry[mutation.removedNodes[i].localName] && that.registry[mutation.removedNodes[i].localName].onRemove) {
-                            that.registry[mutation.removedNodes[i].localName].onRemove(mutation.removedNodes[i]);
+                    for (var i_1 in mutation.removedNodes) {
+                        if (that.registry[mutation.removedNodes[i_1].localName] && that.registry[mutation.removedNodes[i_1].localName].onRemove) {
+                            that.registry[mutation.removedNodes[i_1].localName].onRemove(mutation.removedNodes[i_1]);
                         }
                     }
                 });
             });
             JHCRdocObserver.observe(document, { childList: true, subtree: true });
+        };
+        // buildComponentData(m, type, item) {
+        //     let i, obj = {}, data
+        //     for(i in item) {
+        //         data = m.getElementsByTagName(i)
+        //         if(data.length) {
+        //             obj[i] = this.getDataAs[type](m, item[i].type, item[i].item)
+        //         }
+        //     }
+        //     console.log(obj)
+        //     return obj
+        // }
+        this.getDataAs = {
+            array: function (m, key, intf) {
+                var obj = [], data, item;
+                data = m.getElementsByTagName(key);
+                if (data.length) {
+                    for (var e = 0; e < data.length; e++) {
+                        item = _this.getDataAs["object"](data[e], null, intf);
+                        if (item) {
+                            obj.push(item);
+                        }
+                    }
+                }
+                else {
+                    item = _this.getDataDefault["object"](intf);
+                    if (item) {
+                        obj.push(item);
+                    }
+                }
+                return obj;
+            },
+            object: function (m, key, intf) {
+                var obj = {}, data, item;
+                for (var i in intf) {
+                    data = m.getElementsByTagName(i);
+                    if (data.length) {
+                        for (var e = 0; e < data.length; e++) {
+                            obj[i] = _this.getDataAs[intf[i].type](data[e], i, intf[i].item);
+                        }
+                    }
+                    else {
+                        item = _this.getDataDefault[intf[i].type](intf[i].item);
+                        if (item) {
+                            obj[i] = item;
+                        }
+                    }
+                }
+                return obj;
+            },
+            string: function (data, key, intf) {
+                if (data) {
+                    return data.innerHTML;
+                }
+                return _this.getDataDefault["string"](intf);
+            }
+        };
+        this.getDataDefault = {
+            array: function (intf) {
+                debugger;
+                var i, empty, check, obj = [], item = {};
+                for (i in intf) {
+                    item = _this.getDataDefault["object"](intf);
+                    if (check) {
+                        item = check;
+                        empty = false;
+                    }
+                }
+                if (item) {
+                    obj.push(item);
+                }
+                return obj.length ? obj : false;
+            },
+            object: function (intf) {
+                var i, isSet = false, check, item = {};
+                debugger;
+                for (i in intf) {
+                    item[i] = _this.getDataDefault[intf[i].type](intf[i].item);
+                    if (item[i]) {
+                        isSet = true;
+                    }
+                    else {
+                        item[i] = "";
+                    }
+                }
+                return isSet ? item : false;
+            },
+            string: function (intf) {
+                if (intf) {
+                    return intf;
+                }
+                else {
+                    return false;
+                }
+            }
         };
         this.getValueOf = function (path, obj) {
             return path.split('.').reduce(function (prev, curr) {
@@ -389,27 +491,7 @@ var elementManager = /** @class */ (function () {
             children: function (config, elem, dataModel) {
                 var that = _this;
                 config.forEach(function (i) {
-                    if (i.tag === "textNode") {
-                        var content = i.html.split(/\s*(\{\{[^}]+}})\s*/).filter(Boolean);
-                        content.forEach(function (item, index) {
-                            var str;
-                            if (item.match(/{{(.*?)}}/)) {
-                                str = item.replace(/{{|}}|\s/g, "");
-                                var selectedData = that.getValueOf(str, dataModel);
-                                str = document.createTextNode(selectedData.value);
-                                selectedData.onSet.push(function (v) { str.nodeValue = v.value; });
-                            }
-                            else {
-                                str = document.createTextNode(item);
-                            }
-                            if (index !== content.length)
-                                str.nodeValue += " ";
-                            elem.appendChild(str);
-                        });
-                    }
-                    else {
-                        elem.appendChild(that.init(i, dataModel));
-                    }
+                    elem.appendChild(that.init(i, dataModel));
                 });
             },
             callbacks: function (config, elem) {
@@ -418,17 +500,17 @@ var elementManager = /** @class */ (function () {
                     elem.addEventListener(i.event, i.callback);
                 });
             },
-            binds: function (config, elem) {
+            binds: function (config, elem, d) {
                 var that = _this;
                 function setVals(config) {
                     config.forEach(function (i) {
-                        var data = that.getValueOf(i.data, elem.data);
+                        var data = that.getValueOf(i.data, d);
                         if (i.property) {
                             elem[i.property] = data.value;
                             data.onSet.push(function (d) { return elem[i.property = d.value]; });
                         }
                         if (i.attribute) {
-                            elem.setAttribute(i.attribute, that.getValueOf(config.data, elem.data));
+                            elem.setAttribute(i.attribute, data.value);
                             data.onSet.push(function (d) { return elem.setAttribute(i.attribute, d.value); });
                         }
                         if (i.callback) {
@@ -459,6 +541,19 @@ var elementManager = /** @class */ (function () {
             this.init[i] = this.protos[i];
         }
     }
+    elementManager.prototype.getComponentData = function (e, intf) {
+        var o = {};
+        if (e.children.length) {
+            if (e.children[0].tagName === "SET-DATA") {
+                for (var i in intf) {
+                    o[i] = this.getDataAs[intf[i].type](e.children[0], i, intf[i].item);
+                }
+            }
+        }
+        o;
+        console.log(o);
+        debugger;
+    };
     return elementManager;
 }());
 exports.elementManager = elementManager;

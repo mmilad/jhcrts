@@ -20,7 +20,7 @@
   },
   "scripts": {
     "run": "php -S localhost:8000",
-    "webpack": "webpack"
+    "webpack": "webpack" 
   },
   "repository": {
     "type": "git",
