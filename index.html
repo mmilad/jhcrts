@@ -72,7 +72,7 @@ jhcr.html.register({
         },
         "interface": {
             "person": {
-                "type": "array",
+                "type": "object",
                 "item": {
                     "name": {
                         "type": "string",
@@ -101,19 +101,24 @@ jhcr.html.register({
     }
 })
     window.onload = function() {
-        var elem = document.querySelector('test-component')
-        // elem.data.person.name = "Meister Milad"
-        elem.data.person = {
-            name: "Dev Milad",
-            alter: "bald 31"
-        } 
-        var x = document.createComment("hello world")
-        document.body.appendChild(x)
-        // debugger
-        var div = document.createElement('div')
-        x.replaceWith(div)
-        // debugger
-        div.replaceWith(x)
+        var testComponent = document.getElementById('testComponent');
+
+        setTimeout(function() {
+            console.log(testComponent.data.person.skills[0].value)
+            console.log(testComponent.data.person.skills[1].value)
+            testComponent.data.person.skills = [
+                {
+                    skill: "foo",
+                    level: "bar"
+                },
+                {
+                    skill: "fo1o",
+                    level: "ba1r"
+                }
+            ]
+            console.log(testComponent.data.person.skills[0].value)
+            console.log(testComponent.data.person.skills[1].value)
+        },2000)
     }
         </script>
 
@@ -126,14 +131,19 @@ jhcr.html.register({
         </div>
         <foo-elem></foo-elem>
         <foox></foox>
-        <test-component>
+        <test-component id="testComponent">
             <set-data>
                 <person>
-                    <name>meister milad</name>
-                    <!-- <skills>
+                      <name>milad</name> 
+                      <alter>30+</alter> 
+                     <skills>
                         <skill>php</skill>
                         <level>3</level>
-                    </skills> -->
+                    </skills>  
+                     <skills>
+                        <skill>js</skill>
+                        <level>10+</level>
+                    </skills>  
                 </person>
             </set-data>
         </test-component>

@@ -90,6 +90,9 @@ var dataManager = /** @class */ (function () {
                             sets.push(e);
                             configProp(db, e, "");
                         }
+                        else if (e.constructor === Array) {
+                            debugger;
+                        }
                         else if (typeof e === "object") {
                             for (var i in e) {
                                 sets.push(i);
@@ -358,9 +361,12 @@ var elementManager = /** @class */ (function () {
                             }
                             mutation.addedNodes[i].fa = mutation.addedNodes[i].findAll = mutation.addedNodes[i].querySelectorAll;
                             mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelector;
+                            var data = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface);
+                            console.log(data);
+                            if (Object.keys(data).length) {
+                                mutation.addedNodes[i].data = data;
+                            }
                             var tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl, mutation.addedNodes[i].data);
-                            var x = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface);
-                            console.log(x);
                             mutation.addedNodes[i].appendChild(tplElement);
                             if (that.registry[mutation.addedNodes[i].localName].onSet) {
                                 that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
@@ -376,17 +382,6 @@ var elementManager = /** @class */ (function () {
             });
             JHCRdocObserver.observe(document, { childList: true, subtree: true });
         };
-        // buildComponentData(m, type, item) {
-        //     let i, obj = {}, data
-        //     for(i in item) {
-        //         data = m.getElementsByTagName(i)
-        //         if(data.length) {
-        //             obj[i] = this.getDataAs[type](m, item[i].type, item[i].item)
-        //         }
-        //     }
-        //     console.log(obj)
-        //     return obj
-        // }
         this.getDataAs = {
             array: function (m, key, intf) {
                 var obj = [], data, item;
@@ -394,14 +389,14 @@ var elementManager = /** @class */ (function () {
                 if (data.length) {
                     for (var e = 0; e < data.length; e++) {
                         item = _this.getDataAs["object"](data[e], null, intf);
-                        if (item) {
+                        if (_this.hasValues(item)) {
                             obj.push(item);
                         }
                     }
                 }
                 else {
                     item = _this.getDataDefault["object"](intf);
-                    if (item) {
+                    if (_this.hasValues(item)) {
                         obj.push(item);
                     }
                 }
@@ -413,14 +408,16 @@ var elementManager = /** @class */ (function () {
                     data = m.getElementsByTagName(i);
                     if (data.length) {
                         for (var e = 0; e < data.length; e++) {
-                            obj[i] = _this.getDataAs[intf[i].type](data[e], i, intf[i].item);
+                            if (intf[i].type === "array") {
+                                obj[i] = _this.getDataAs[intf[i].type](m, i, intf[i].item);
+                            }
+                            else {
+                                obj[i] = _this.getDataAs[intf[i].type](data[e], i, intf[i].item);
+                            }
                         }
                     }
                     else {
-                        item = _this.getDataDefault[intf[i].type](intf[i].item);
-                        if (item) {
-                            obj[i] = item;
-                        }
+                        obj[i] = _this.getDataDefault[intf[i].type](intf[i].item);
                     }
                 }
                 return obj;
@@ -434,41 +431,24 @@ var elementManager = /** @class */ (function () {
         };
         this.getDataDefault = {
             array: function (intf) {
-                debugger;
                 var i, empty, check, obj = [], item = {};
                 for (i in intf) {
                     item = _this.getDataDefault["object"](intf);
-                    if (check) {
-                        item = check;
-                        empty = false;
-                    }
                 }
-                if (item) {
+                if (_this.hasValues(item)) {
                     obj.push(item);
                 }
-                return obj.length ? obj : false;
+                return obj;
             },
             object: function (intf) {
                 var i, isSet = false, check, item = {};
-                debugger;
                 for (i in intf) {
                     item[i] = _this.getDataDefault[intf[i].type](intf[i].item);
-                    if (item[i]) {
-                        isSet = true;
-                    }
-                    else {
-                        item[i] = "";
-                    }
                 }
-                return isSet ? item : false;
+                return item;
             },
             string: function (intf) {
-                if (intf) {
-                    return intf;
-                }
-                else {
-                    return false;
-                }
+                return intf;
             }
         };
         this.getValueOf = function (path, obj) {
@@ -507,7 +487,9 @@ var elementManager = /** @class */ (function () {
                         var data = that.getValueOf(i.data, d);
                         if (i.property) {
                             elem[i.property] = data.value;
-                            data.onSet.push(function (d) { return elem[i.property = d.value]; });
+                            data.onSet.push(function (d) {
+                                elem[i.property] = d.value;
+                            });
                         }
                         if (i.attribute) {
                             elem.setAttribute(i.attribute, data.value);
@@ -520,9 +502,6 @@ var elementManager = /** @class */ (function () {
                     });
                 }
                 setVals(config);
-                // config.data.onSet.push(function(e){
-                //     setVals(config)
-                // })
             }
         };
         this.protos = {
@@ -542,17 +521,25 @@ var elementManager = /** @class */ (function () {
         }
     }
     elementManager.prototype.getComponentData = function (e, intf) {
-        var o = {};
+        var o = {}, h;
         if (e.children.length) {
             if (e.children[0].tagName === "SET-DATA") {
                 for (var i in intf) {
                     o[i] = this.getDataAs[intf[i].type](e.children[0], i, intf[i].item);
                 }
+                e.children[0].remove();
             }
         }
-        o;
-        console.log(o);
-        debugger;
+        return o;
+    };
+    elementManager.prototype.hasValues = function (o) {
+        var hasItem = false;
+        for (var i in o) {
+            if (o[i]) {
+                hasItem = true;
+            }
+        }
+        return hasItem;
     };
     return elementManager;
 }());

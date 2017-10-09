@@ -67,9 +67,12 @@ export class elementManager {
                         }
                         mutation.addedNodes[i].fa = mutation.addedNodes[i].findAll = mutation.addedNodes[i].querySelectorAll;
                         mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelector;
+                        let data = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface)
+                        console.log(data)
+                        if(Object.keys(data).length) {
+                            mutation.addedNodes[i].data = data
+                        }
                         let tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl, mutation.addedNodes[i].data)
-                        let x = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface)
-                        console.log(x)
                         mutation.addedNodes[i].appendChild(tplElement)
                         if(that.registry[mutation.addedNodes[i].localName].onSet) {
                             that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
@@ -86,29 +89,24 @@ export class elementManager {
         JHCRdocObserver.observe(document, { childList:true, subtree:true});
     }
     getComponentData(e, intf) {
-        let o = {}
+        let o = {},h
         if(e.children.length) { 
             if(e.children[0].tagName === "SET-DATA") {
                 for(let i in intf) {
                     o[i] = this.getDataAs[intf[i].type]( e.children[0], i, intf[i].item )
                 }
+                e.children[0].remove()
             }
         }
-        o
-        console.log(o)
-        debugger
+        return o
     }
-    // buildComponentData(m, type, item) {
-    //     let i, obj = {}, data
-    //     for(i in item) {
-    //         data = m.getElementsByTagName(i)
-    //         if(data.length) {
-    //             obj[i] = this.getDataAs[type](m, item[i].type, item[i].item)
-    //         }
-    //     }
-    //     console.log(obj)
-    //     return obj
-    // }
+    hasValues(o) {
+        let hasItem = false
+        for(let i in o) {
+            if(o[i]) {hasItem = true}
+        }
+        return hasItem
+    }
     getDataAs = {
         array: (m, key, intf) => {
             let obj = [], data, item
@@ -116,11 +114,15 @@ export class elementManager {
                 if(data.length) {
                     for (var e = 0; e < data.length; e++) {
                         item = this.getDataAs["object"](data[e], null, intf)
-                        if(item) {obj.push(item)}
+                        if(this.hasValues(item)) {
+                            obj.push(item)
+                        }
                     }
                 } else {
                     item = this.getDataDefault["object"](intf)
-                    if(item) {obj.push(item)}
+                    if(this.hasValues(item)) {
+                        obj.push(item)
+                    }
                 }
             return obj
         },
@@ -130,11 +132,14 @@ export class elementManager {
                 data = m.getElementsByTagName(i)
                 if(data.length) {
                     for (var e = 0; e < data.length; e++) {
-                        obj[i] = this.getDataAs[intf[i].type](data[e], i, intf[i].item)
+                        if(intf[i].type === "array") {
+                            obj[i] = this.getDataAs[intf[i].type](m, i, intf[i].item)
+                        } else {
+                            obj[i] = this.getDataAs[intf[i].type](data[e], i, intf[i].item)
+                        }
                     }
                 } else {
-                    item = this.getDataDefault[intf[i].type](intf[i].item) 
-                    if(item) {obj[i] = item} 
+                    obj[i] = this.getDataDefault[intf[i].type](intf[i].item)
                 }
             }
             return obj
@@ -148,18 +153,14 @@ export class elementManager {
     }
     getDataDefault = {
         array: (intf) => {
-            debugger
             let i, empty, check, obj = [], item = {}
             for (i in intf) {
                 item = this.getDataDefault["object"](intf)
-                if(check) {
-                    item = check
-                    empty = false
-                }
             }
-            // check if obj is empty
-            if(item) {obj.push(item)}
-            return obj.length ? obj : false
+            if(this.hasValues(item)) {
+                obj.push(item)
+            }
+            return obj
         },
         object: (intf) => {
             let i, isSet = false, check, item = {}
@@ -209,7 +210,9 @@ export class elementManager {
                    let data = that.getValueOf(i.data, d)
                     if(i.property) {
                         elem[i.property] = data.value
-                        data.onSet.push((d) => elem[i.property = d.value])
+                        data.onSet.push((d) => {
+                            elem[i.property] = d.value
+                        })
                     }
                     if(i.attribute) {
                         elem.setAttribute(i.attribute, data.value)
@@ -222,9 +225,6 @@ export class elementManager {
                 })
             }
             setVals(config)
-            // config.data.onSet.push(function(e){
-            //     setVals(config)
-            // })
         }
     }
 
