@@ -11,16 +11,7 @@
         <script>
 jhcr.html.register({
     "test-component": {
-        "data": {
-            "person": {
-                "name": "milad",
-                "alter": "30",
-                "skills": {
-                    "skill": "php",
-                    "level": "3"
-                }
-            }
-        },
+        "data": {},
         "tpl": {
             "children": [
                 {
@@ -64,6 +55,36 @@ jhcr.html.register({
                                 }
                             ],
                             "tag": "p"
+                        },
+                        {
+                            "tag": "placeHolder",
+                            "tpl": {
+                                "attributes": {},
+                                "children": [
+                                    {
+                                        "tag": "textNode",
+                                        "properties": {
+                                            "nodeValue": "name is set as "
+                                        }
+                                    },
+                                    {
+                                        "tag": "textNode",
+                                        "binds": [
+                                            {
+                                                "property": "nodeValue",
+                                                "data": "person.name"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "tag": "p",
+                                "if": "ifcon"
+                            }
+                        },
+                        {
+                            "attributes": {},
+                            "children": [],
+                            "tag": "p"
                         }
                     ],
                     "tag": "div"
@@ -71,27 +92,30 @@ jhcr.html.register({
             ]
         },
         "interface": {
+            "ifcon": {
+                "type": "object"
+            },
             "person": {
                 "type": "object",
                 "item": {
                     "name": {
                         "type": "string",
-                        "item": ""
+                        "item": "milad"
                     },
                     "alter": {
                         "type": "string",
-                        "item": ""
+                        "item": "30"
                     },
                     "skills": {
                         "type": "array",
                         "item": {
                             "skill": {
                                 "type": "string",
-                                "item": ""
+                                "item": "php"
                             },
                             "level": {
                                 "type": "string",
-                                "item": ""
+                                "item": "3"
                             }
                         }
                     }
@@ -104,8 +128,8 @@ jhcr.html.register({
         var testComponent = document.getElementById('testComponent');
 
         setTimeout(function() {
-            console.log(testComponent.data.person.skills[0].value)
-            console.log(testComponent.data.person.skills[1].value)
+            // console.log(testComponent.data.person.skills[0].value)
+            // console.log(testComponent.data.person.skills[1].value)
             testComponent.data.person.skills = [
                 {
                     skill: "foo",
@@ -116,9 +140,20 @@ jhcr.html.register({
                     level: "ba1r"
                 }
             ]
-            console.log(testComponent.data.person.skills[0].value)
-            console.log(testComponent.data.person.skills[1].value)
+            // console.log(testComponent.data.person.skills[0].value)
+            // console.log(testComponent.data.person.skills[1].value)
+            testComponent.data.ifcon ="";
         },2000)
+
+        setTimeout(function() {
+            testComponent.data.ifcon =" mr milad";
+        }, 4000)
+        setTimeout(function() {
+            testComponent.data.ifcon = "";
+        }, 6000)
+        setTimeout(function() {
+            testComponent.data.ifcon =" meister milad";
+        }, 8000)
     }
         </script>
 
@@ -135,7 +170,7 @@ jhcr.html.register({
             <set-data>
                 <person>
                       <name>milad</name> 
-                      <alter>30+</alter> 
+                      <alter>30</alter> 
                      <skills>
                         <skill>php</skill>
                         <level>3</level>

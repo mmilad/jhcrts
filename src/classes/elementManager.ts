@@ -33,8 +33,30 @@ export class elementManager {
         config.tag = !config.tag ? 'div' : config.tag
         if(config.tag === "textNode") {
             element = document.createTextNode('')
+        } else if(config.tag === "placeHolder") {
+            element = document.createTextNode('')
+            config.tpl.placeHolder = element
+            this.init(config.tpl, data)
         } else {
             element = config.element ? config.element : document.createElement(config.tag)
+        }
+
+        if(config.if) {
+            let d = this.getValueOf(config.if, data)
+            if(d.value.length) {
+                let cb = () => {
+                    config.placeHolder.replaceWith(element)
+                    config.placeHolder.removeEventListener('DOMNodeInserted', cb)
+                }
+                config.placeHolder.addEventListener('DOMNodeInserted', cb)
+            }
+            d.onSet.push(e => {
+                if(e.value.length) {
+                    config.placeHolder.replaceWith(element)
+                } else {
+                    element.replaceWith(config.placeHolder)
+                }
+            })
         }
         !config.value ? false : element.value = config.value
         !config.html ? false : element.innerHTML = config.html
@@ -68,7 +90,7 @@ export class elementManager {
                         mutation.addedNodes[i].fa = mutation.addedNodes[i].findAll = mutation.addedNodes[i].querySelectorAll;
                         mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelector;
                         let data = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface)
-                        console.log(data)
+                        // console.log(data)
                         if(Object.keys(data).length) {
                             mutation.addedNodes[i].data = data
                         }

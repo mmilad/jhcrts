@@ -21,9 +21,6 @@ export class dataManager {
                     if(typeof e === "string") {
                         sets.push(e)
                         configProp(db, e, "")
-                    }
-                    if (e.constructor === Array){
-                        debugger
                     } else if (typeof e === "object"){
                         for(let i in e) {
                             sets.push(i)

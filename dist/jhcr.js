@@ -90,9 +90,6 @@ var dataManager = /** @class */ (function () {
                             sets.push(e);
                             configProp(db, e, "");
                         }
-                        else if (e.constructor === Array) {
-                            debugger;
-                        }
                         else if (typeof e === "object") {
                             for (var i in e) {
                                 sets.push(i);
@@ -328,8 +325,31 @@ var elementManager = /** @class */ (function () {
             if (config.tag === "textNode") {
                 element = document.createTextNode('');
             }
+            else if (config.tag === "placeHolder") {
+                element = document.createTextNode('');
+                config.tpl.placeHolder = element;
+                _this.init(config.tpl, data);
+            }
             else {
                 element = config.element ? config.element : document.createElement(config.tag);
+            }
+            if (config.if) {
+                var d = _this.getValueOf(config.if, data);
+                if (d.value.length) {
+                    var cb_1 = function () {
+                        config.placeHolder.replaceWith(element);
+                        config.placeHolder.removeEventListener('DOMNodeInserted', cb_1);
+                    };
+                    config.placeHolder.addEventListener('DOMNodeInserted', cb_1);
+                }
+                d.onSet.push(function (e) {
+                    if (e.value.length) {
+                        config.placeHolder.replaceWith(element);
+                    }
+                    else {
+                        element.replaceWith(config.placeHolder);
+                    }
+                });
             }
             !config.value ? false : element.value = config.value;
             !config.html ? false : element.innerHTML = config.html;
@@ -362,7 +382,7 @@ var elementManager = /** @class */ (function () {
                             mutation.addedNodes[i].fa = mutation.addedNodes[i].findAll = mutation.addedNodes[i].querySelectorAll;
                             mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelector;
                             var data = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface);
-                            console.log(data);
+                            // console.log(data)
                             if (Object.keys(data).length) {
                                 mutation.addedNodes[i].data = data;
                             }
