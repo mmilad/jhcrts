@@ -72,53 +72,86 @@ export class elementManager {
         var dm = new dataManager()
         let that = this, JHCRdocObserver = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation:any) {
-                for(var i in mutation.addedNodes) {
-                    if(that.registry[mutation.addedNodes[i].localName]) {
-                        if(that.registry[mutation.addedNodes[i].localName].data) {
-                            var db = dm.init();
-                            db.set="data";
-                            db.data = that.registry[mutation.addedNodes[i].localName].data
-                            Object.defineProperty(mutation.addedNodes[i], "data", {
-                                get() {
-                                    return db.data;
-                                },
-                                set(e) {
-                                    db.data = e;
-                                }
-                            });
+                mutation.addedNodes.forEach(m =>{
+                    if(that.registry[m.localName]) {
+                        var db = dm.init();
+                        db.set="data";
+                        db.data = that.registry[m.localName].data
+                        
+                        m.fa = m.findAll = m.querySelectorAll;
+                        m.f = m.find = m.querySelector;
+                        
+                        if(m.data) {
+                            that.mergedDefaultData(m.data, that.registry[m.localName].interface)
+                            db.data = m.data
+                        } else {
+                            db.data = that.getComponentData(m, that.registry[m.localName].interface)
                         }
-                        mutation.addedNodes[i].fa = mutation.addedNodes[i].findAll = mutation.addedNodes[i].querySelectorAll;
-                        mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelector;
-                        let data = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface)
-                        // console.log(data)
-                        if(Object.keys(data).length) {
-                            mutation.addedNodes[i].data = data
-                        }
-                        let tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl, mutation.addedNodes[i].data)
-                        mutation.addedNodes[i].appendChild(tplElement)
-                        if(that.registry[mutation.addedNodes[i].localName].onSet) {
-                            that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
+
+                        Object.defineProperty(m, "data", {
+                            get() {
+                                return db.data;
+                            },
+                            set(e) {
+                                db.data = e;
+                            }
+                        });
+                        let tplElement = that.init(that.registry[m.localName].tpl, m.data)
+                        m.appendChild(tplElement)
+                        if(that.registry[m.localName].onSet) {
+                            that.registry[m.localName].onSet(m);
                         }
                     }
-                }
-                for(let i in mutation.removedNodes) {
-                    if(that.registry[mutation.removedNodes[i].localName] && that.registry[mutation.removedNodes[i].localName].onRemove) {
-                        that.registry[mutation.removedNodes[i].localName].onRemove(mutation.removedNodes[i]);
+                })
+                mutation.removedNodes.forEach(m => {
+                    if(that.registry[m.localName] && that.registry[m.localName].onRemove) {
+                        that.registry[m.localName].onRemove(m);
                     }
-                }
+                })
             });
         });
         JHCRdocObserver.observe(document, { childList:true, subtree:true});
     }
-    getComponentData(e, intf) {
-        let o = {},h
-        if(e.children.length) { 
-            if(e.children[0].tagName === "SET-DATA") {
-                for(let i in intf) {
-                    o[i] = this.getDataAs[intf[i].type]( e.children[0], i, intf[i].item )
+    getDefaultData(intf) {
+        let o = {}
+        for(let i in intf) {
+            o[i] = this.getDataDefault[intf[i].type](intf[i].item )
+        }
+        return o
+    }
+    mergedDefaultData(data, intf) {
+        let o = data, defaultData = this.getDefaultData(intf)
+        this.deepMerge(defaultData, o)
+        return o
+    }
+// refactor
+    deepMerge(from, to) {
+        for(let i in from) {
+            if(!to[i]) {
+                to[i] = from[i]
+            } else {
+                if(to[i] instanceof Object) { 
+                    this.deepMerge(to[i], from[i])
                 }
-                e.children[0].remove()
             }
+        }
+    }
+
+    getComponentData(e, intf) {
+
+        let o = {}, setData = e.getElementsByTagName('set-data')
+        if(setData.length) {
+            setData = setData[0]
+            for(let i in intf) {
+                if(intf[i].type === "string") {
+                    o[i] = this.getDataAs[intf[i].type]( setData.getElementsByTagName(i)[0], i, intf[i].item )
+                } else {
+                    o[i] = this.getDataAs[intf[i].type]( setData, i, intf[i].item )
+                }
+            }
+            setData.remove()
+        } else {
+            o = this.getDefaultData(intf)
         }
         return o
     }

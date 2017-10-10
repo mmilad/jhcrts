@@ -364,40 +364,40 @@ var elementManager = /** @class */ (function () {
             var dm = new dataManager_1.dataManager();
             var that = _this, JHCRdocObserver = new MutationObserver(function (mutations) {
                 mutations.forEach(function (mutation) {
-                    for (var i in mutation.addedNodes) {
-                        if (that.registry[mutation.addedNodes[i].localName]) {
-                            if (that.registry[mutation.addedNodes[i].localName].data) {
-                                var db = dm.init();
-                                db.set = "data";
-                                db.data = that.registry[mutation.addedNodes[i].localName].data;
-                                Object.defineProperty(mutation.addedNodes[i], "data", {
-                                    get: function () {
-                                        return db.data;
-                                    },
-                                    set: function (e) {
-                                        db.data = e;
-                                    }
-                                });
+                    mutation.addedNodes.forEach(function (m) {
+                        if (that.registry[m.localName]) {
+                            var db = dm.init();
+                            db.set = "data";
+                            db.data = that.registry[m.localName].data;
+                            m.fa = m.findAll = m.querySelectorAll;
+                            m.f = m.find = m.querySelector;
+                            if (m.data) {
+                                that.mergedDefaultData(m.data, that.registry[m.localName].interface);
+                                db.data = m.data;
                             }
-                            mutation.addedNodes[i].fa = mutation.addedNodes[i].findAll = mutation.addedNodes[i].querySelectorAll;
-                            mutation.addedNodes[i].f = mutation.addedNodes[i].find = mutation.addedNodes[i].querySelector;
-                            var data = that.getComponentData(mutation.addedNodes[i], that.registry[mutation.addedNodes[i].localName].interface);
-                            // console.log(data)
-                            if (Object.keys(data).length) {
-                                mutation.addedNodes[i].data = data;
+                            else {
+                                db.data = that.getComponentData(m, that.registry[m.localName].interface);
                             }
-                            var tplElement = that.init(that.registry[mutation.addedNodes[i].localName].tpl, mutation.addedNodes[i].data);
-                            mutation.addedNodes[i].appendChild(tplElement);
-                            if (that.registry[mutation.addedNodes[i].localName].onSet) {
-                                that.registry[mutation.addedNodes[i].localName].onSet(mutation.addedNodes[i]);
+                            Object.defineProperty(m, "data", {
+                                get: function () {
+                                    return db.data;
+                                },
+                                set: function (e) {
+                                    db.data = e;
+                                }
+                            });
+                            var tplElement = that.init(that.registry[m.localName].tpl, m.data);
+                            m.appendChild(tplElement);
+                            if (that.registry[m.localName].onSet) {
+                                that.registry[m.localName].onSet(m);
                             }
                         }
-                    }
-                    for (var i_1 in mutation.removedNodes) {
-                        if (that.registry[mutation.removedNodes[i_1].localName] && that.registry[mutation.removedNodes[i_1].localName].onRemove) {
-                            that.registry[mutation.removedNodes[i_1].localName].onRemove(mutation.removedNodes[i_1]);
+                    });
+                    mutation.removedNodes.forEach(function (m) {
+                        if (that.registry[m.localName] && that.registry[m.localName].onRemove) {
+                            that.registry[m.localName].onRemove(m);
                         }
-                    }
+                    });
                 });
             });
             JHCRdocObserver.observe(document, { childList: true, subtree: true });
@@ -540,15 +540,47 @@ var elementManager = /** @class */ (function () {
             this.init[i] = this.protos[i];
         }
     }
-    elementManager.prototype.getComponentData = function (e, intf) {
-        var o = {}, h;
-        if (e.children.length) {
-            if (e.children[0].tagName === "SET-DATA") {
-                for (var i in intf) {
-                    o[i] = this.getDataAs[intf[i].type](e.children[0], i, intf[i].item);
-                }
-                e.children[0].remove();
+    elementManager.prototype.getDefaultData = function (intf) {
+        var o = {};
+        for (var i in intf) {
+            o[i] = this.getDataDefault[intf[i].type](intf[i].item);
+        }
+        return o;
+    };
+    elementManager.prototype.mergedDefaultData = function (data, intf) {
+        var o = data, defaultData = this.getDefaultData(intf);
+        this.deepMerge(defaultData, o);
+        return o;
+    };
+    // refactor
+    elementManager.prototype.deepMerge = function (from, to) {
+        for (var i in from) {
+            if (!to[i]) {
+                to[i] = from[i];
             }
+            else {
+                if (to[i] instanceof Object) {
+                    this.deepMerge(to[i], from[i]);
+                }
+            }
+        }
+    };
+    elementManager.prototype.getComponentData = function (e, intf) {
+        var o = {}, setData = e.getElementsByTagName('set-data');
+        if (setData.length) {
+            setData = setData[0];
+            for (var i in intf) {
+                if (intf[i].type === "string") {
+                    o[i] = this.getDataAs[intf[i].type](setData.getElementsByTagName(i)[0], i, intf[i].item);
+                }
+                else {
+                    o[i] = this.getDataAs[intf[i].type](setData, i, intf[i].item);
+                }
+            }
+            setData.remove();
+        }
+        else {
+            o = this.getDefaultData(intf);
         }
         return o;
     };
