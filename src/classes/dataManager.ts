@@ -4,7 +4,7 @@ export class dataManager {
     constructor(){
     }
 
-    init= () => {
+    init= () => { 
         return this.dataObject();
     }
     dataObject = () =>{
@@ -13,7 +13,7 @@ export class dataManager {
             var db = Object.create({}),
                 sets = []
                 db.__proto__.onSet = this.sets()
-            Object.defineProperty(db.__proto__, "set",{
+            Object.defineProperty(db.__proto__, "set",{ 
                 get () {
                     return sets
                 },
