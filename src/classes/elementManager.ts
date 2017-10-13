@@ -1,12 +1,13 @@
 import { elemConfig, elemRegisterConfig, elemTypeConfig } from './../interfaces/elem'
 import { dataManager } from './dataManager'
-
 export class elementManager {
     element
     types = {}
     registry = {}
-
-    constructor() {
+    mergeDeep
+    constructor(h) {
+        this.mergeDeep = h.merge
+        // this.mergeDeep = h.merge.dm
         for(let i in this.protos) {
             this.init[i] = this.protos[i]
         }
@@ -76,18 +77,14 @@ export class elementManager {
                     if(that.registry[m.localName]) {
                         var db = dm.init();
                         db.set="data";
-                        db.data = that.registry[m.localName].data
-                        
-                        m.fa = m.findAll = m.querySelectorAll;
-                        m.f = m.find = m.querySelector;
-                        
+                        if(!that.registry[m.localName].defaultData) {
+                            that.registry[m.localName].defaultData = that.getDefaultData(that.registry[m.localName].interface)
+                        }
                         if(m.data) {
-                            that.mergedDefaultData(m.data, that.registry[m.localName].interface)
-                            db.data = m.data
+                            db.data = that.mergedDefaultData(m.data, that.registry[m.localName].defaultData)
                         } else {
                             db.data = that.getComponentData(m, that.registry[m.localName].interface)
                         }
-
                         Object.defineProperty(m, "data", {
                             get() {
                                 return db.data;
@@ -97,7 +94,11 @@ export class elementManager {
                             }
                         });
                         let tplElement = that.init(that.registry[m.localName].tpl, m.data)
-                        m.appendChild(tplElement)
+                        if(m.childNodes[0]) {
+                            m.insertBefore(tplElement, m.childNodes[0])
+                        } else {
+                            m.appendChild(tplElement)
+                        }
                         if(that.registry[m.localName].onSet) {
                             that.registry[m.localName].onSet(m);
                         }
@@ -120,21 +121,8 @@ export class elementManager {
         return o
     }
     mergedDefaultData(data, intf) {
-        let o = data, defaultData = this.getDefaultData(intf)
-        this.deepMerge(defaultData, o)
-        return o
-    }
-// refactor
-    deepMerge(from, to) {
-        for(let i in from) {
-            if(!to[i]) {
-                to[i] = from[i]
-            } else {
-                if(to[i] instanceof Object) { 
-                    this.deepMerge(to[i], from[i])
-                }
-            }
-        }
+        let o = data, defaultData = intf
+        return this.mergeDeep(defaultData, o)
     }
 
     getComponentData(e, intf) {
