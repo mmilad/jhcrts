@@ -175,7 +175,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var styleManager_1 = __webpack_require__(2);
 var elementManager_1 = __webpack_require__(3);
 var dataManager_1 = __webpack_require__(0);
-var fwName = "jhcr", em = new elementManager_1.elementManager();
+var deepMerger_1 = __webpack_require__(5);
+var fwName = "jhcr", helper = {
+    merge: new deepMerger_1.MergeDeep().deepMerge
+}, em = new elementManager_1.elementManager(helper);
 // define caller functions
 window[fwName] = {
     css: new styleManager_1.styleManager().init,
@@ -183,18 +186,6 @@ window[fwName] = {
     data: new dataManager_1.dataManager().init
 };
 em.watchElements();
-// define proto functions
-// for(let i in x.protos) {
-//     window[fwName].css.__proto__[i] = x.protos[i]
-// }
-// for(let i in y.protos) {
-//     debugger
-//     window[fwName].html.__proto__[i] = y.protos[i]
-// }
-// new styleManager()
-// styleManager.length
-// for(let i in styleManager.protoFunction)
-// window[fwName].css.__proto__ 
 
 
 /***/ }),
@@ -299,7 +290,7 @@ exports.styleManager = styleManager;
 Object.defineProperty(exports, "__esModule", { value: true });
 var dataManager_1 = __webpack_require__(0);
 var elementManager = /** @class */ (function () {
-    function elementManager() {
+    function elementManager(h) {
         var _this = this;
         this.types = {};
         this.registry = {};
@@ -368,12 +359,11 @@ var elementManager = /** @class */ (function () {
                         if (that.registry[m.localName]) {
                             var db = dm.init();
                             db.set = "data";
-                            db.data = that.registry[m.localName].data;
-                            m.fa = m.findAll = m.querySelectorAll;
-                            m.f = m.find = m.querySelector;
+                            if (!that.registry[m.localName].defaultData) {
+                                that.registry[m.localName].defaultData = that.getDefaultData(that.registry[m.localName].interface);
+                            }
                             if (m.data) {
-                                that.mergedDefaultData(m.data, that.registry[m.localName].interface);
-                                db.data = m.data;
+                                db.data = that.mergedDefaultData(m.data, that.registry[m.localName].defaultData);
                             }
                             else {
                                 db.data = that.getComponentData(m, that.registry[m.localName].interface);
@@ -387,7 +377,12 @@ var elementManager = /** @class */ (function () {
                                 }
                             });
                             var tplElement = that.init(that.registry[m.localName].tpl, m.data);
-                            m.appendChild(tplElement);
+                            if (m.childNodes[0]) {
+                                m.insertBefore(tplElement, m.childNodes[0]);
+                            }
+                            else {
+                                m.appendChild(tplElement);
+                            }
                             if (that.registry[m.localName].onSet) {
                                 that.registry[m.localName].onSet(m);
                             }
@@ -536,6 +531,8 @@ var elementManager = /** @class */ (function () {
                 }
             }
         };
+        this.mergeDeep = h.merge;
+        // this.mergeDeep = h.merge.dm
         for (var i in this.protos) {
             this.init[i] = this.protos[i];
         }
@@ -548,22 +545,8 @@ var elementManager = /** @class */ (function () {
         return o;
     };
     elementManager.prototype.mergedDefaultData = function (data, intf) {
-        var o = data, defaultData = this.getDefaultData(intf);
-        this.deepMerge(defaultData, o);
-        return o;
-    };
-    // refactor
-    elementManager.prototype.deepMerge = function (from, to) {
-        for (var i in from) {
-            if (!to[i]) {
-                to[i] = from[i];
-            }
-            else {
-                if (to[i] instanceof Object) {
-                    this.deepMerge(to[i], from[i]);
-                }
-            }
-        }
+        var o = data, defaultData = intf;
+        return this.mergeDeep(defaultData, o);
     };
     elementManager.prototype.getComponentData = function (e, intf) {
         var o = {}, setData = e.getElementsByTagName('set-data');
@@ -619,6 +602,45 @@ var helper = /** @class */ (function () {
     return helper;
 }());
 exports.helper = helper;
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var MergeDeep = /** @class */ (function () {
+    function MergeDeep() {
+    }
+    MergeDeep.prototype.isObject = function (item) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+    };
+    MergeDeep.prototype.deepMerge = function (target, sources) {
+        if (!sources.length)
+            return target;
+        var source = sources.shift();
+        if (this.isObject(target) && this.isObject(source)) {
+            for (var key in source) {
+                if (this.isObject(source[key])) {
+                    if (!target[key])
+                        target[key] = {};
+                    this.deepMerge(target[key], source[key]);
+                }
+                else {
+                    target[key] = source[key];
+                }
+            }
+        }
+        return this.deepMerge(target, sources);
+    };
+    MergeDeep.prototype.init = function (o, s) {
+        return this.deepMerge(o, s);
+    };
+    return MergeDeep;
+}());
+exports.MergeDeep = MergeDeep;
 
 
 /***/ })
