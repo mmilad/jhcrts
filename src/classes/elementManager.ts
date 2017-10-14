@@ -59,6 +59,9 @@ export class elementManager {
                 }
             })
         }
+        if(config.for) {
+            console.log(config.for.data)
+        }
         !config.value ? false : element.value = config.value
         !config.html ? false : element.innerHTML = config.html
         !config.class ? false : element.className = config.class
