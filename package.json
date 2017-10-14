@@ -1,17 +1,20 @@
 {
   "name": "jhcrts",
-  "version": "1.0.0",
+  "version": "1.0.22",
   "description": "",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
-  },
-  "devDependencies": {
+    "ts-loader": "^2.3.7",
+    "typescript": "^2.5.3",
+    "webpack": "^3.6.0"
   },
   "scripts": {
-    "run": "php -S localhost:8000"
+    "run": "php -S localhost:8000",
+    "webpack": "webpack",
+    "build": "webpack --optimize-minimize"
   },
   "repository": {
     "type": "git",

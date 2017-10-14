@@ -1,0 +1,186 @@
+<html>
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <script src="./dist/jhcr.js"></script>
+        <style>
+            body {
+                border: 1px solid black;
+            }
+        </style>
+        <script>
+jhcr.html.register({
+    "test-component": {
+        "data": {},
+        "tpl": {
+            "children": [
+                {
+                    "attributes": {
+                        "title": "hmm",
+                        "propDop": "asdasd"
+                    },
+                    "children": [
+                        {
+                            "attributes": {},
+                            "children": [
+                                {
+                                    "tag": "textNode",
+                                    "binds": [
+                                        {
+                                            "property": "nodeValue",
+                                            "data": "person.name"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "tag": "textNode",
+                                    "properties": {
+                                        "nodeValue": " ist "
+                                    }
+                                },
+                                {
+                                    "tag": "textNode",
+                                    "binds": [
+                                        {
+                                            "property": "nodeValue",
+                                            "data": "person.alter"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "tag": "textNode",
+                                    "properties": {
+                                        "nodeValue": " jahre alt"
+                                    }
+                                }
+                            ],
+                            "tag": "p"
+                        },
+                        {
+                            "tag": "placeHolder",
+                            "tpl": {
+                                "attributes": {},
+                                "children": [
+                                    {
+                                        "tag": "textNode",
+                                        "properties": {
+                                            "nodeValue": "name is set as "
+                                        }
+                                    },
+                                    {
+                                        "tag": "textNode",
+                                        "binds": [
+                                            {
+                                                "property": "nodeValue",
+                                                "data": "person.name"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "tag": "p",
+                                "if": "ifcon"
+                            }
+                        },
+                        {
+                            "attributes": {},
+                            "children": [],
+                            "tag": "p"
+                        }
+                    ],
+                    "tag": "div"
+                }
+            ]
+        },
+        "interface": {
+            "ifcon": {
+                "type": "object"
+            },
+            "person": {
+                "type": "object",
+                "item": {
+                    "name": {
+                        "type": "string",
+                        "item": "milad"
+                    },
+                    "alter": {
+                        "type": "string",
+                        "item": "30"
+                    },
+                    "skills": {
+                        "type": "array",
+                        "item": {
+                            "skill": {
+                                "type": "string",
+                                "item": "php"
+                            },
+                            "level": {
+                                "type": "string",
+                                "item": "3"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+})
+    window.onload = function() {
+        var testComponent = document.getElementById('testComponent');
+
+        setTimeout(function() {
+            // console.log(testComponent.data.person.skills[0].value)
+            // console.log(testComponent.data.person.skills[1].value)
+            testComponent.data.person.skills = [
+                {
+                    skill: "foo",
+                    level: "bar"
+                },
+                {
+                    skill: "fo1o",
+                    level: "ba1r"
+                }
+            ]
+            // console.log(testComponent.data.person.skills[0].value)
+            // console.log(testComponent.data.person.skills[1].value)
+            testComponent.data.ifcon ="";
+        },2000)
+
+        setTimeout(function() {
+            testComponent.data.ifcon =" mr milad";
+        }, 4000)
+        setTimeout(function() {
+            testComponent.data.ifcon = "";
+        }, 6000)
+        setTimeout(function() {
+            testComponent.data.ifcon =" meister milad";
+        }, 8000)
+    }
+        </script>
+
+    </head>
+    <body>
+        
+        hello world
+        <div class="foo">
+            <div class="bar"></div>
+        </div>
+        <foo-elem></foo-elem>
+        <foox></foox>
+        <test-component id="testComponent">
+            <set-data>
+                <person>
+                      <name>milad</name> 
+                      <alter>30</alter> 
+                     <skills>
+                        <skill>php</skill>
+                        <level>3</level>
+                    </skills>  
+                     <skills>
+                        <skill>js</skill>
+                        <level>10+</level>
+                    </skills>  
+                </person>
+            </set-data>
+        </test-component>
+    </body>
+</html>
