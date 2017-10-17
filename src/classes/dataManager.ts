@@ -53,9 +53,26 @@ export class dataManager {
                             }, key);
                         });
                         db.__proto__.value = e
+                        if (e instanceof Array){
+                            db.__proto__.onPush = []
+                            db.__proto__.emitPush = () => {
+                                db.onPush.forEach(cb => cb())
+                                console.log("pushed")
+                            }
+                            db.__proto__.push = (e) => {
+                                db.value.push(e)
+                                db.emitPush()
+                            }
+                            db.__proto__.type = "array"
+                        } 
                         if(typeof e === "object") {
                             for(i in e) {
-                                if(!db[i]){db.set = i}
+                                if(!db[i]){
+                                    if(db.type === "array") {
+                                        db.emitPush()
+                                    }
+                                    db.set = i
+                                }
                                 db[i] = e[i]
                             }
                         }

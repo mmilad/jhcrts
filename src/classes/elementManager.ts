@@ -13,7 +13,7 @@ export class elementManager {
         }
     }
 
-    init = (config:any, data?) => {
+    init = (config:any, data?, arrData?) => {
         let element
         if(typeof config === "string") {config={tag:config}}
 
@@ -58,6 +58,10 @@ export class elementManager {
                     element.replaceWith(config.placeHolder)
                 }
             })
+        }
+        if(config.for) {
+            let d = this.getValueOf(config.for.data, data)
+            debugger
         }
         if(config.for) {
             console.log(config.for.data)
