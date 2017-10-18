@@ -13,7 +13,7 @@ export class elementManager {
         }
     }
 
-    init = (config:any, data?, arrData?) => {
+    init = (config:any, data?, closureData?) => {
         let element
         if(typeof config === "string") {config={tag:config}}
 
@@ -35,9 +35,19 @@ export class elementManager {
         if(config.tag === "textNode") {
             element = document.createTextNode('')
         } else if(config.tag === "placeHolder") {
+            debugger
             element = document.createTextNode('')
             config.tpl.placeHolder = element
-            this.init(config.tpl, data)
+
+            if(config.tpl.for) {
+                config.tpl.for.tplBase = {};
+                (<any>Object).assign(config.tpl.for.tplBase, config.tpl)
+                config.tpl.for.items = new Array()
+                this.modifyForTpl(config.tpl, this.getValueOf(config.tpl.for.data, data), data)
+                // this.init(config.tpl, data, d)
+            } else {
+                this.init(config.tpl, data)
+            }
         } else {
             element = config.element ? config.element : document.createElement(config.tag)
         }
@@ -59,23 +69,32 @@ export class elementManager {
                 }
             })
         }
-        if(config.for) {
-            let d = this.getValueOf(config.for.data, data)
-            debugger
-        }
-        if(config.for) {
-            console.log(config.for.data)
-        }
         !config.value ? false : element.value = config.value
         !config.html ? false : element.innerHTML = config.html
         !config.class ? false : element.className = config.class
 
         for(let i in config) {
-            if(this.render[i]) this.render[i](config[i], element, data)
+            if(config.closureData) {
+                debugger
+            }
+            if(this.render[i]) this.render[i](config[i], element, data, config)
         }
 
         return element
     }
+
+    modifyForTpl = (tpl, cdata, data) => {
+        for(let i=0;i < cdata.value.length; i++) {
+            if(!tpl.for.items[i]) {
+                let newItem = {closureData: null};
+                (<any>Object).assign(newItem, tpl.for.tplBase)
+                newItem.closureData = cdata[i]
+                tpl.for.items.push(this.init(newItem, data))
+            }
+        }
+        
+    }
+    
     watchElements = () => {
         var dm = new dataManager()
         let that = this, JHCRdocObserver = new MutationObserver(function(mutations) {
@@ -244,7 +263,7 @@ export class elementManager {
         children: (config, elem, dataModel) => {
             let that = this
             config.forEach(function(i){
-                elem.appendChild(that.init(i, dataModel))
+                elem.appendChild(that.init(i, dataModel, i.closureData))
             })
         },
         callbacks: (config, elem) => {
@@ -253,11 +272,17 @@ export class elementManager {
                 elem.addEventListener(i.event, i.callback)
             })
         },
-        binds: (config, elem, d) => {
+        binds: (config, elem, d, closureData) => {
             let that = this
             function setVals(config) {
                 config.forEach((i) => {
-                   let data = that.getValueOf(i.data, d)
+                   let data = that.getValueOf(i.value, d)
+                    if(!data) {
+                        let valKEy = i.value.split('.')[0],
+                            key = i.value.replace(valKEy+'.', '')
+                            debugger
+                            data = that.getValueOf(key, closureData[valKEy])
+                    }
                     if(i.property) {
                         elem[i.property] = data.value
                         data.onSet.push((d) => {
@@ -269,7 +294,7 @@ export class elementManager {
                         data.onSet.push((d) => elem.setAttribute(i.attribute, d.value))
                     }
                     if(i.callback) {
-                        i.callback(i.data.value)
+                        i.callback(data.value)
                         data.onSet.push(i.callback)
                     }
                 })
